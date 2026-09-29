@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { AuthBackground } from "./AuthBackground";
+import { BackgroundGradient } from "./BackgroundGradient";
 import { AuthFooter } from "./AuthFooter";
 
 interface AuthLayoutProps {
@@ -20,8 +20,8 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 }) => {
   return (
     <div className="min-h-screen flex flex-col justify-between relative bg-[#FDFDFD] overflow-x-hidden selection:bg-[#0F62FE] selection:text-white font-sans">
-      {/* Reusable Multi-Layer Animated AuthBackground */}
-      <AuthBackground />
+      {/* Dynamic Ambient Gradient Blobs with Organic Wave SVG & Cursor Parallax */}
+      <BackgroundGradient />
 
       {/* Main Two-Column Content Area */}
       <main className="w-full flex-1 flex items-center justify-center relative z-10 py-10 lg:py-16">
