@@ -7,7 +7,7 @@ import { AuthFooter } from "./AuthFooter";
 
 interface AuthLayoutProps {
   heroHeading: string;
-  heroDescription: string;
+  heroDescription: React.ReactNode;
   badgeText?: string;
   children: React.ReactNode;
 }
@@ -19,7 +19,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   children,
 }) => {
   return (
-    <div className="min-h-screen flex flex-col justify-between relative bg-[#FDFDFD] overflow-x-hidden selection:bg-[#0F62FE] selection:text-white">
+    <div className="min-h-screen flex flex-col justify-between relative bg-[#FDFDFD] overflow-x-hidden selection:bg-[#0F62FE] selection:text-white font-sans">
       {/* Dynamic Ambient Gradient Blobs with Organic Wave SVG & Cursor Parallax */}
       <BackgroundGradient />
 
@@ -55,10 +55,10 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
                 {heroHeading}
               </h1>
 
-              {/* Hero Paragraph */}
-              <p className="mt-5 sm:mt-6 text-base sm:text-lg text-[#6B7280] font-normal leading-relaxed max-w-xl">
+              {/* Hero Paragraph with Typewriter Effect Support */}
+              <div className="mt-5 sm:mt-6 text-base sm:text-lg text-[#6B7280] font-normal leading-relaxed max-w-xl min-h-[5rem]">
                 {heroDescription}
-              </p>
+              </div>
             </motion.div>
 
             {/* Right Column: Card Form (Positioned on the Right) */}

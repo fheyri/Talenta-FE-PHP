@@ -9,6 +9,8 @@ import { AuthCard } from "@/components/auth/AuthCard";
 import { TextField } from "@/components/auth/TextField";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { PrimaryButton } from "@/components/auth/PrimaryButton";
+import { TypewriterText } from "@/components/auth/TypewriterText";
+import { ErrorModal } from "@/components/auth/ErrorModal";
 import { loginSchema, LoginFormValues } from "@/lib/validations/auth";
 import { loginAdmin } from "@/lib/api";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
@@ -18,6 +20,10 @@ export default function LoginPage() {
   const [apiError, setApiError] = useState<string | null>(null);
   const [apiSuccess, setApiSuccess] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState(
+    "ups email atau kata sandi salah, silahkan coba lagi"
+  );
 
   const {
     register,
@@ -52,14 +58,21 @@ export default function LoginPage() {
           }
         }
       } else {
+        const errMsg = response.message || "ups email atau kata sandi salah, silahkan coba lagi";
         triggerShake();
-        setApiError(response.message || "Gagal masuk. Periksa kembali akun Anda.");
+        setApiError(errMsg);
+        setModalMessage(errMsg);
+        setIsModalOpen(true);
       }
     } catch (err: unknown) {
       triggerShake();
       const errorMsg =
-        err instanceof Error ? err.message : "Terjadi kesalahan saat masuk.";
+        err instanceof Error
+          ? err.message
+          : "ups email atau kata sandi salah, silahkan coba lagi";
       setApiError(errorMsg);
+      setModalMessage(errorMsg);
+      setIsModalOpen(true);
     }
   };
 
@@ -68,105 +81,121 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthLayout
-      heroHeading="Akselerasi serapan alumni & kemitraan kerja vokasi."
-      heroDescription="Platform tata kelola karir terpadu untuk monitoring tracer study, verifikasi lowongan kerja resmi, dan rekapitulasi data BKK sekolah secara akurat."
-      badgeText="Portal Khusus Pengelola BKK Sekolah"
-    >
-      <AuthCard
-        title="Selamat Datang Kembali"
-        subtitle="Masuk ke Dashboard BKK untuk mengelola informasi dan data karier."
-        isErrorShaking={isShaking}
+    <>
+      <AuthLayout
+        heroHeading="Akselerasi serapan alumni & kemitraan kerja vokasi."
+        heroDescription={
+          <TypewriterText
+            text="Platform tata kelola karir terpadu untuk monitoring tracer study, verifikasi lowongan kerja resmi, dan rekapitulasi data BKK sekolah secara akurat."
+            speed={24}
+            startDelay={500}
+          />
+        }
+        badgeText="Portal Khusus Pengelola BKK Sekolah"
       >
-        {/* Animated Feedback Alerts */}
-        <AnimatePresence mode="wait">
-          {apiError && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, y: -6 }}
-              animate={{ opacity: 1, height: "auto", y: 0 }}
-              exit={{ opacity: 0, height: 0, y: -6 }}
-              transition={{ duration: 0.25 }}
-              className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200/90 text-red-700 text-xs sm:text-sm flex items-start gap-2.5 overflow-hidden"
-              role="alert"
-            >
-              <AlertCircle className="w-4 h-4 mt-0.5 text-red-500 flex-shrink-0" />
-              <span className="leading-tight">{apiError}</span>
-            </motion.div>
-          )}
+        <AuthCard
+          title="Selamat Datang Kembali"
+          subtitle="Masuk ke Dashboard BKK untuk mengelola informasi dan data karier."
+          isErrorShaking={isShaking}
+        >
+          {/* Animated Inline Feedback Alerts */}
+          <AnimatePresence mode="wait">
+            {apiError && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: -6 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -6 }}
+                transition={{ duration: 0.25 }}
+                className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200/90 text-red-700 text-xs sm:text-sm flex items-start gap-2.5 overflow-hidden"
+                role="alert"
+              >
+                <AlertCircle className="w-4 h-4 mt-0.5 text-red-500 flex-shrink-0" />
+                <span className="leading-tight font-medium">{apiError}</span>
+              </motion.div>
+            )}
 
-          {apiSuccess && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, y: -6 }}
-              animate={{ opacity: 1, height: "auto", y: 0 }}
-              exit={{ opacity: 0, height: 0, y: -6 }}
-              transition={{ duration: 0.25 }}
-              className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200/90 text-emerald-800 text-xs sm:text-sm flex items-start gap-2.5 overflow-hidden"
-              role="alert"
-            >
-              <CheckCircle2 className="w-4 h-4 mt-0.5 text-emerald-600 flex-shrink-0" />
-              <span className="leading-tight">{apiSuccess}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {apiSuccess && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: -6 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -6 }}
+                transition={{ duration: 0.25 }}
+                className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200/90 text-emerald-800 text-xs sm:text-sm flex items-start gap-2.5 overflow-hidden"
+                role="alert"
+              >
+                <CheckCircle2 className="w-4 h-4 mt-0.5 text-emerald-600 flex-shrink-0" />
+                <span className="leading-tight font-medium">{apiSuccess}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-        <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-4" noValidate>
-          {/* Email / Username Input */}
-          <TextField
-            label="Email / Username"
-            placeholder="admin@gmail.com"
-            autoComplete="username"
-            error={errors.email?.message}
-            {...register("email")}
-          />
+          <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-4" noValidate>
+            {/* Email / Username Input */}
+            <TextField
+              label="Email / Username"
+              placeholder="admin@gmail.com"
+              autoComplete="username"
+              error={errors.email?.message}
+              {...register("email")}
+            />
 
-          {/* Password Input */}
-          <PasswordField
-            label="Password"
-            placeholder="admin123"
-            autoComplete="current-password"
-            error={errors.password?.message}
-            {...register("password")}
-          />
+            {/* Password Input */}
+            <PasswordField
+              label="Password"
+              placeholder="admin123"
+              autoComplete="current-password"
+              error={errors.password?.message}
+              {...register("password")}
+            />
 
-          {/* Lupa Password Link (Right Aligned) */}
-          <div className="flex justify-end pt-0.5">
-            <Link
-              href="/forgot-password"
-              className="text-xs font-semibold text-[#0F62FE] hover:text-[#0050E6] hover:underline transition-colors duration-150 inline-block focus:outline-none focus:ring-2 focus:ring-[#0F62FE]/30 rounded"
-            >
-              Lupa password ?
-            </Link>
-          </div>
+            {/* Lupa Password Link (Right Aligned) */}
+            <div className="flex justify-end pt-0.5">
+              <Link
+                href="/forgot-password"
+                className="text-xs font-semibold text-[#0F62FE] hover:text-[#0050E6] hover:underline transition-colors duration-150 inline-block focus:outline-none focus:ring-2 focus:ring-[#0F62FE]/30 rounded"
+              >
+                Lupa password ?
+              </Link>
+            </div>
 
-          {/* Submit Button (Sign In) */}
-          <div className="pt-2">
-            <PrimaryButton
-              type="submit"
-              isLoading={isSubmitting}
-              loadingText="Memverifikasi Akun..."
-            >
-              Sign In
-            </PrimaryButton>
-          </div>
+            {/* Submit Button (Sign In) */}
+            <div className="pt-2">
+              <PrimaryButton
+                type="submit"
+                isLoading={isSubmitting}
+                loadingText="Memverifikasi Akun..."
+              >
+                Sign In
+              </PrimaryButton>
+            </div>
 
-          {/* Sign Up Redirect Link */}
-          <div className="pt-2 text-center text-xs sm:text-sm text-[#6B7280]">
-            Don&apos;t have account?{" "}
-            <Link
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                alert(
-                  "Pendaftaran akun Pengelola BKK Sekolah dilakukan melalui Dinas Pendidikan / Administrator Pusat TALENTA."
-                );
-              }}
-              className="font-semibold text-[#0F62FE] hover:text-[#0050E6] hover:underline ml-0.5 transition-colors focus:outline-none focus:ring-2 focus:ring-[#0F62FE]/30 rounded"
-            >
-              Sign Up
-            </Link>
-          </div>
-        </form>
-      </AuthCard>
-    </AuthLayout>
+            {/* Sign Up Redirect Link */}
+            <div className="pt-2 text-center text-xs sm:text-sm text-[#6B7280]">
+              Don&apos;t have account?{" "}
+              <Link
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  alert(
+                    "Pendaftaran akun Pengelola BKK Sekolah dilakukan melalui Dinas Pendidikan / Administrator Pusat TALENTA."
+                  );
+                }}
+                className="font-semibold text-[#0F62FE] hover:text-[#0050E6] hover:underline ml-0.5 transition-colors focus:outline-none focus:ring-2 focus:ring-[#0F62FE]/30 rounded"
+              >
+                Sign Up
+              </Link>
+            </div>
+          </form>
+        </AuthCard>
+      </AuthLayout>
+
+      {/* Pop-up Modal when credentials are wrong */}
+      <ErrorModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Ups! Email atau Kata Sandi Salah"
+        message={modalMessage}
+      />
+    </>
   );
 }

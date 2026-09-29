@@ -49,15 +49,17 @@ export async function POST(request: NextRequest) {
       }
 
       // If Laravel returned an error (e.g., 401 or 422)
-      if (laravelResponse.status === 401 || laravelResponse.status === 422 || laravelResponse.status === 403) {
-        const errData = await laravelResponse.json();
+      if (
+        laravelResponse.status === 401 ||
+        laravelResponse.status === 422 ||
+        laravelResponse.status === 403
+      ) {
         return NextResponse.json(
           {
             success: false,
-            message: errData.message || "Email / Username atau kata sandi tidak cocok.",
-            errors: errData.errors,
+            message: "ups email atau kata sandi salah, silahkan coba lagi",
           },
-          { status: laravelResponse.status }
+          { status: 401 }
         );
       }
     } catch {
@@ -85,11 +87,11 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Invalid credentials response
+    // Invalid credentials response matching user's exact specification
     return NextResponse.json(
       {
         success: false,
-        message: "Email / Username atau kata sandi salah. Gunakan admin@gmail.com / admin123.",
+        message: "ups email atau kata sandi salah, silahkan coba lagi",
       },
       { status: 401 }
     );
