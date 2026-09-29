@@ -15,10 +15,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Mock handler response: Ready for connection to Laravel Mailer / Password Reset Token
+    // In demo mode: simulate generating OTP code
+    // Standard mock OTP is '123456'
     return NextResponse.json({
       success: true,
-      message: `Kode pemulihan akses telah dikirimkan ke ${email}. Silakan periksa kotak masuk atau spam email Anda.`,
+      otp: "123456",
+      message: `Kode verifikasi OTP 6-digit telah dikirimkan ke ${email}. Gunakan kode demo: 123456.`,
     });
   } catch (error) {
     return NextResponse.json(

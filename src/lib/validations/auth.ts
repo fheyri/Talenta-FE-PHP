@@ -36,3 +36,32 @@ export const forgotPasswordSchema = z.object({
 });
 
 export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+
+export const verifyOtpSchema = z.object({
+  email: z.string().min(1, { message: "Email wajib diisi" }),
+  otp: z
+    .string()
+    .length(6, { message: "Kode OTP harus terdiri dari 6 digit angka" })
+    .regex(/^\d+$/, { message: "Kode OTP hanya boleh berisi angka" }),
+});
+
+export type VerifyOtpFormValues = z.infer<typeof verifyOtpSchema>;
+
+export const resetPasswordSchema = z
+  .object({
+    email: z.string().min(1, { message: "Email wajib diisi" }),
+    otp: z.string().length(6, { message: "Kode OTP tidak valid" }),
+    password: z
+      .string()
+      .min(1, { message: "Kata sandi baru wajib diisi" })
+      .min(6, { message: "Kata sandi minimal 6 karakter" }),
+    password_confirmation: z
+      .string()
+      .min(1, { message: "Konfirmasi kata sandi wajib diisi" }),
+  })
+  .refine((data) => data.password === data.password_confirmation, {
+    message: "Konfirmasi kata sandi tidak cocok dengan kata sandi baru",
+    path: ["password_confirmation"],
+  });
+
+export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
