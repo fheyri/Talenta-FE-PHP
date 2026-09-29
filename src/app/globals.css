@@ -25,14 +25,10 @@
   }
 }
 
-/* Keyframes for Senior-Level Ambient, Shimmer, Shake & Blinking Caret Animations */
+/* Keyframes: Button Shimmer, Shake Error, Caret */
 @keyframes shimmerSweep {
-  0% {
-    transform: translateX(-150%) skewX(-25deg);
-  }
-  100% {
-    transform: translateX(250%) skewX(-25deg);
-  }
+  0% { transform: translateX(-150%) skewX(-25deg); }
+  100% { transform: translateX(250%) skewX(-25deg); }
 }
 
 @keyframes shakeError {
@@ -46,6 +42,71 @@
   50% { opacity: 0; }
 }
 
+/* Keyframes: Layer 1 Aurora Blobs (Slow Organic Translation & Scaling 1-1.15) */
+@keyframes auroraBlobA {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-9%, 7%) scale(1.14);
+  }
+  100% {
+    transform: translate(-5%, 10%) scale(1.04);
+  }
+}
+
+@keyframes auroraBlobB {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(8%, -9%) scale(1.15);
+  }
+  100% {
+    transform: translate(10%, -4%) scale(1.02);
+  }
+}
+
+@keyframes auroraBlobC {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(7%, 8%) scale(1.11);
+  }
+  100% {
+    transform: translate(-6%, -5%) scale(1.03);
+  }
+}
+
+/* Keyframes: Layer 2 Dot Grid Drift */
+@keyframes driftDotGrid {
+  0% {
+    background-position: 0px 0px;
+  }
+  100% {
+    background-position: 24px 24px;
+  }
+}
+
+/* Keyframes: Layer 3 Floating Particles */
+@keyframes floatParticleY {
+  0% {
+    transform: translateY(0px) scale(0.85);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.35;
+  }
+  75% {
+    opacity: 0.25;
+  }
+  100% {
+    transform: translateY(-180px) scale(1.15);
+    opacity: 0;
+  }
+}
+
 .animate-shimmer {
   animation: shimmerSweep 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
@@ -56,4 +117,39 @@
 
 .animate-caret {
   animation: blinkCaret 0.8s infinite;
+}
+
+/* Aurora Blob Animations with Negative Delays */
+.animate-aurora-a {
+  animation: auroraBlobA 22s ease-in-out infinite alternate;
+  animation-delay: -5s;
+}
+
+.animate-aurora-b {
+  animation: auroraBlobB 26s ease-in-out infinite alternate;
+  animation-delay: -9s;
+}
+
+.animate-aurora-c {
+  animation: auroraBlobC 19s ease-in-out infinite alternate;
+  animation-delay: -13s;
+}
+
+.animate-dot-grid {
+  animation: driftDotGrid 60s linear infinite;
+}
+
+/* Accessibility: Respect Reduced Motion Preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-aurora-a,
+  .animate-aurora-b,
+  .animate-aurora-c,
+  .animate-dot-grid,
+  .animate-particle,
+  .animate-shimmer,
+  .animate-shake,
+  .animate-caret {
+    animation: none !important;
+    transform: none !important;
+  }
 }
