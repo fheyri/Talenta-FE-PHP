@@ -24,9 +24,6 @@ import {
   AlertCircle,
   CheckCircle2,
   ArrowLeft,
-  Mail,
-  KeyRound,
-  ShieldCheck,
   RotateCcw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -376,7 +373,6 @@ export default function ForgotPasswordPage() {
                   isLoading={isSubmittingEmail}
                   loadingText="Mengirimkan Kode..."
                 >
-                  <Mail className="w-4 h-4 mr-1" />
                   Kirim Code Email
                 </PrimaryButton>
               </div>
@@ -451,7 +447,6 @@ export default function ForgotPasswordPage() {
                   isLoading={isSubmittingOtp}
                   loadingText="Memverifikasi OTP..."
                 >
-                  <KeyRound className="w-4 h-4 mr-1" />
                   Verifikasi OTP
                 </PrimaryButton>
               </div>
@@ -516,7 +511,6 @@ export default function ForgotPasswordPage() {
                   isLoading={isSubmittingReset}
                   loadingText="Menyimpan Kata Sandi..."
                 >
-                  <ShieldCheck className="w-4 h-4 mr-1" />
                   Simpan Kata Sandi Baru
                 </PrimaryButton>
               </div>
