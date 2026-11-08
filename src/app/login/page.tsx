@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AuthLayout } from "@/components/auth/AuthLayout";
@@ -17,6 +18,7 @@ import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [apiError, setApiError] = useState<string | null>(null);
   const [apiSuccess, setApiSuccess] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
@@ -57,6 +59,11 @@ export default function LoginPage() {
             localStorage.setItem("talenta_bkk_user", JSON.stringify(response.user));
           }
         }
+
+        // Tunggu sebentar supaya pesan sukses sempat terbaca,
+        // lalu pindah ke halaman dashboard.
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        router.replace("/dashboard");
       } else {
         const errMsg = response.message || "ups email atau kata sandi salah, silahkan coba lagi";
         triggerShake();
