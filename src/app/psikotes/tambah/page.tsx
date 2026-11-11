@@ -455,7 +455,7 @@ export default function TambahSoalPsikotesPage() {
             Lengkapi informasi tes dan tambahkan soal psikotes sebelum menyimpannya.
           </p>
 
-          <div className="mt-6 max-w-[1060px] space-y-6">
+          <div className="mt-6 space-y-6">
             {/* ===== Informasi Tes ===== */}
             <section className="rounded-2xl border border-[#E8E9ED] bg-white px-4 py-5">
               <div className="flex items-center gap-3">
