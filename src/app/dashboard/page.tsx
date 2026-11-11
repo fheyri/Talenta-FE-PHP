@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion, MotionConfig, type Variants } from "framer-motion";
 import {
   LayoutGrid,
   Briefcase,
@@ -64,11 +65,14 @@ function NavItem({ item, active }: { item: MenuItem; active: boolean }) {
   return (
     <Link
       href={item.href}
-      className={`flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium transition-colors ${
+      className={`group flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium transition-all duration-200 hover:translate-x-1 ${
         active ? "bg-[#DCE6FD] text-[#2E62EA]" : "text-[#181B21] hover:bg-[#DCE6FD]/60"
       }`}
     >
-      <Icon className={`h-5 w-5 ${active ? "text-[#2E62EA]" : "text-[#666666]"}`} strokeWidth={1.75} />
+      <Icon
+        className={`h-5 w-5 transition-transform duration-200 group-hover:scale-110 ${active ? "text-[#2E62EA]" : "text-[#666666]"}`}
+        strokeWidth={1.75}
+      />
       <span className="flex-1">{item.label}</span>
       {item.badge && (
         <span className="rounded-full bg-[#DCE6FD] px-2 py-0.5 text-xs font-semibold text-[#2E62EA]">
@@ -158,19 +162,31 @@ function Topbar() {
 
       <Link
         href="/lowongan/tambah"
-        className="flex h-[52px] items-center gap-3 rounded-lg bg-[#2E62EA] px-7 text-[15px] font-semibold text-white transition-colors hover:bg-[#4276E8]"
+        className="flex h-[52px] items-center gap-3 rounded-lg bg-[#2E62EA] px-7 text-[15px] font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#4276E8] hover:shadow-md active:scale-[0.98]"
       >
         <Plus className="h-5 w-5" strokeWidth={2.25} />
         Tambah Lowongan
       </Link>
 
-      <button
+      <motion.button
         aria-label="Notifikasi"
-        className="relative flex h-[52px] w-[62px] items-center justify-center rounded-lg border border-[#E8E9ED] bg-white text-[#181B21] hover:bg-[#EEF3FE]"
+        initial="diam"
+        whileHover="goyang"
+        whileTap={{ scale: 0.95 }}
+        className="relative flex h-[52px] w-[62px] items-center justify-center rounded-lg border border-[#E8E9ED] bg-white text-[#181B21] transition-colors hover:bg-[#EEF3FE]"
       >
-        <Bell className="h-6 w-6" strokeWidth={1.75} />
+        <motion.span
+          className="inline-flex origin-top"
+          variants={{
+            diam: { rotate: 0 },
+            goyang: { rotate: [0, -18, 14, -10, 6, 0], transition: { duration: 0.6 } },
+          }}
+        >
+          <Bell className="h-6 w-6" strokeWidth={1.75} />
+        </motion.span>
+        <span className="absolute right-[18px] top-[13px] h-2.5 w-2.5 animate-ping rounded-full bg-red-400 opacity-75" />
         <span className="absolute right-[18px] top-[13px] h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
-      </button>
+      </motion.button>
 
       <div className="flex h-[52px] min-w-[240px] items-center gap-3 rounded-lg border border-[#E8E9ED] bg-white px-5 text-[15px] text-[#666666]">
         <Calendar className="h-5 w-5" strokeWidth={1.75} />
@@ -194,13 +210,15 @@ function Topbar() {
 
 function AdminShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F6F7F8] font-sans text-[#181B21]">
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
-        <main className="flex-1 overflow-y-auto px-10 py-10">{children}</main>
+    <MotionConfig reducedMotion="user">
+      <div className="flex h-screen overflow-hidden bg-[#F6F7F8] font-sans text-[#181B21]">
+        <Sidebar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Topbar />
+          <main className="flex-1 overflow-y-auto px-10 py-10">{children}</main>
+        </div>
       </div>
-    </div>
+    </MotionConfig>
   );
 }
 
@@ -221,7 +239,7 @@ function Segmented({
         <button
           key={opt}
           onClick={() => onChange(opt)}
-          className={`rounded-md px-5 py-2 text-[15px] font-medium transition-colors ${
+          className={`rounded-md px-5 py-2 text-[15px] font-medium transition-all active:scale-95 ${
             value === opt
               ? "bg-white text-[#2E62EA] shadow-sm"
               : "text-[#666666] hover:text-[#181B21]"
@@ -232,6 +250,60 @@ function Segmented({
       ))}
     </div>
   );
+}
+
+/* ============================ ANIMASI ============================ */
+// Memakai framer-motion (sudah terpasang di project, dipakai juga di halaman login).
+// Otomatis menyesuaikan dengan pengaturan "kurangi animasi" di perangkat (lihat MotionConfig di AdminShell).
+
+const easeHalus: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
+// Kontainer: anak-anaknya muncul satu per satu
+const wadah: Variants = {
+  tersembunyi: {},
+  tampil: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+};
+
+// Elemen muncul dari bawah sambil memudar masuk
+const naik: Variants = {
+  tersembunyi: { opacity: 0, y: 18 },
+  tampil: { opacity: 1, y: 0, transition: { duration: 0.5, ease: easeHalus } },
+};
+
+// Untuk baris tabel / daftar
+const wadahBaris: Variants = {
+  tersembunyi: {},
+  tampil: { transition: { staggerChildren: 0.045, delayChildren: 0.15 } },
+};
+
+const baris: Variants = {
+  tersembunyi: { opacity: 0, x: -12 },
+  tampil: { opacity: 1, x: 0, transition: { duration: 0.35, ease: easeHalus } },
+};
+
+// Angka yang menghitung naik dari 0 saat halaman dibuka
+function AngkaNaik({ nilai }: { nilai: string }) {
+  const target = Number(nilai.replace(/\D/g, ""));
+  const [tampil, setTampil] = useState(0);
+
+  useEffect(() => {
+    const kurangiGerak = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const durasi = kurangiGerak ? 0 : 1000;
+    const mulai = performance.now();
+    let frame = 0;
+
+    const tick = (sekarang: number) => {
+      const p = durasi === 0 ? 1 : Math.min((sekarang - mulai) / durasi, 1);
+      const halus = 1 - Math.pow(1 - p, 3);
+      setTampil(Math.round(target * halus));
+      if (p < 1) frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [target]);
+
+  return <>{new Intl.NumberFormat("id-ID").format(tampil)}</>;
 }
 
 /* ============================ DATA DUMMY ============================ */
@@ -287,22 +359,28 @@ const perhatian = [
 function StatCard({ item }: { item: (typeof stats)[number] }) {
   const Icon = item.icon;
   return (
-    <div className="rounded-2xl border border-[#E8E9ED] bg-white px-6 py-5 shadow-sm">
+    <motion.div
+      variants={naik}
+      whileHover={{ y: -6, transition: { duration: 0.2 } }}
+      className="group rounded-2xl border border-[#E8E9ED] bg-white px-6 py-5 shadow-sm transition-[box-shadow,border-color] duration-300 hover:border-[#6F94EE] hover:shadow-lg"
+    >
       <div className="flex items-center justify-between">
         <p className="text-[15px] text-[#666666]">{item.title}</p>
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EEF3FE] text-[#4276E8]">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EEF3FE] text-[#4276E8] transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110">
           <Icon className="h-5 w-5" strokeWidth={1.75} />
         </span>
       </div>
       <div className="mt-5 flex items-center gap-3">
-        <p className="text-[34px] font-bold leading-none text-[#181B21]">{item.value}</p>
+        <p className="text-[34px] font-bold leading-none text-[#181B21]">
+          <AngkaNaik nilai={item.value} />
+        </p>
         <span className="flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-sm font-medium text-green-600">
           {item.trend && <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.25} />}
           {item.trend ?? item.badge}
         </span>
       </div>
       <p className="mt-4 text-[15px] text-[#666666]">{item.note}</p>
-    </div>
+    </motion.div>
   );
 }
 
@@ -311,7 +389,10 @@ function OverviewChart() {
   const tinggi = 240;
 
   return (
-    <section className="rounded-2xl border border-[#E8E9ED] bg-white p-8">
+    <motion.section
+      variants={naik}
+      className="rounded-2xl border border-[#E8E9ED] bg-white p-8 transition-shadow duration-300 hover:shadow-md"
+    >
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-[28px] font-bold text-[#181B21]">Overview Lowongan</h2>
@@ -325,14 +406,34 @@ function OverviewChart() {
       <div className="mt-6 border-t border-[#E8E9ED]" />
 
       <div className="flex items-end justify-between px-4 pt-6" style={{ height: tinggi + 60 }}>
-        {chartData.map((d) => (
+        {chartData.map((d, i) => (
           <div key={d.bulan} className="flex flex-col items-center gap-3">
             <div className="flex items-end gap-1" style={{ height: tinggi }}>
               {filter !== "Expired" && (
-                <div className="w-5 rounded-t-[3px] bg-[#2E62EA]" style={{ height: d.aktif }} />
+                <motion.div
+                  key="aktif"
+                  className="group relative w-5 origin-bottom rounded-t-[3px] bg-[#2E62EA] transition-colors hover:bg-[#4276E8]"
+                  initial={{ height: 0 }}
+                  animate={{ height: d.aktif }}
+                  transition={{ duration: 0.9, delay: 0.3 + i * 0.08, ease: easeHalus }}
+                >
+                  <span className="pointer-events-none absolute bottom-full left-1/2 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded bg-[#181B21] px-2 py-0.5 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+                    {d.aktif}
+                  </span>
+                </motion.div>
               )}
               {filter !== "Aktif" && (
-                <div className="w-5 rounded-t-[3px] bg-[#D9DBE1]" style={{ height: d.expired }} />
+                <motion.div
+                  key="expired"
+                  className="group relative w-5 origin-bottom rounded-t-[3px] bg-[#D9DBE1] transition-colors hover:bg-[#C4C7CF]"
+                  initial={{ height: 0 }}
+                  animate={{ height: d.expired }}
+                  transition={{ duration: 0.9, delay: 0.4 + i * 0.08, ease: easeHalus }}
+                >
+                  <span className="pointer-events-none absolute bottom-full left-1/2 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded bg-[#181B21] px-2 py-0.5 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+                    {d.expired}
+                  </span>
+                </motion.div>
               )}
             </div>
             <span className="text-[15px] text-[#666666]">{d.bulan}</span>
@@ -348,41 +449,58 @@ function OverviewChart() {
           <span className="h-3 w-3 rounded-full bg-[#D9DBE1]" /> Expired ( 42 )
         </span>
       </div>
-    </section>
+    </motion.section>
   );
 }
 
 function AlumniProgress() {
   return (
-    <section className="rounded-2xl border border-[#E8E9ED] bg-white p-8">
+    <motion.section
+      variants={naik}
+      className="rounded-2xl border border-[#E8E9ED] bg-white p-8 transition-shadow duration-300 hover:shadow-md"
+    >
       <h2 className="text-[28px] font-bold text-[#181B21]">Perkembangan Karier Alumni</h2>
       <p className="mt-2 text-[15px] text-[#666666]">Distribusi alumni angkatan 2025-2026</p>
 
       <div className="mt-6 border-t border-[#E8E9ED]" />
 
+      {/* Bar progres: memanjang dari kiri saat halaman dibuka */}
       <div className="mt-6 flex h-3.5 overflow-hidden rounded-full bg-[#F6F7F8]">
-        {alumni.map((a) => (
-          <div key={a.label} className={a.warna} style={{ width: `${a.persen}%` }} />
+        {alumni.map((a, i) => (
+          <motion.div
+            key={a.label}
+            className={a.warna}
+            initial={{ width: 0 }}
+            animate={{ width: `${a.persen}%` }}
+            transition={{ duration: 0.9, delay: 0.4 + i * 0.12, ease: easeHalus }}
+          />
         ))}
       </div>
 
-      <ul className="mt-7 space-y-5">
+      <motion.ul variants={wadahBaris} className="mt-7 space-y-3">
         {alumni.map((a) => (
-          <li key={a.label} className="flex items-center gap-3 text-[15px]">
+          <motion.li
+            key={a.label}
+            variants={baris}
+            className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-2 text-[15px] transition-colors duration-200 hover:bg-[#EEF3FE]"
+          >
             <span className="h-3 w-3 shrink-0 rounded-full bg-[#2E62EA]" />
             <span className="flex-1 text-[#181B21]">{a.label}</span>
             <span className="font-bold text-[#181B21]">{a.persen}%</span>
             <span className="w-[88px] text-right text-[#666666]">( {a.jumlah} Siswa )</span>
-          </li>
+          </motion.li>
         ))}
-      </ul>
-    </section>
+      </motion.ul>
+    </motion.section>
   );
 }
 
 function RecentJobs() {
   return (
-    <section className="rounded-2xl border border-[#E8E9ED] bg-white p-8">
+    <motion.section
+      variants={naik}
+      className="rounded-2xl border border-[#E8E9ED] bg-white p-8 transition-shadow duration-300 hover:shadow-md"
+    >
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-[28px] font-bold text-[#181B21]">Lowongan Terbaru</h2>
@@ -391,11 +509,15 @@ function RecentJobs() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <button className="flex items-center gap-8 rounded-lg border border-[#E8E9ED] px-4 py-2.5 text-[15px] text-[#666666]">
+          <button className="flex items-center gap-8 rounded-lg border border-[#E8E9ED] px-4 py-2.5 text-[15px] text-[#666666] transition-colors hover:border-[#6F94EE] hover:bg-[#EEF3FE]">
             Semua Kategori <ChevronDown className="h-4 w-4" />
           </button>
-          <Link href="/lowongan" className="flex items-center gap-2 text-[15px] font-semibold text-[#2E62EA]">
-            Lihat Semua <ArrowRight className="h-4 w-4" />
+          <Link
+            href="/lowongan"
+            className="group flex items-center gap-2 text-[15px] font-semibold text-[#2E62EA]"
+          >
+            Lihat Semua
+            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
           </Link>
         </div>
       </div>
@@ -409,11 +531,13 @@ function RecentJobs() {
               ))}
             </tr>
           </thead>
-          <tbody>
+          <motion.tbody variants={wadahBaris}>
             {lowongan.map((j) => (
-              <tr key={j.posisi}>
+              <motion.tr key={j.posisi} variants={baris} className="group">
                 <td className="py-5 pr-4">
-                  <p className="font-bold text-[#181B21]">{j.posisi}</p>
+                  <p className="font-bold text-[#181B21] transition-colors group-hover:text-[#2E62EA]">
+                    {j.posisi}
+                  </p>
                   <p className="mt-1 text-sm text-[#666666]">{j.tipe}</p>
                 </td>
                 <td className="py-5 pr-6 text-[#666666]">{j.perusahaan}</td>
@@ -429,47 +553,60 @@ function RecentJobs() {
                   )}
                 </td>
                 <td className="py-5">
-                  <a href="#" className="font-medium text-[#2E62EA] hover:underline">Detail</a>
+                  <a
+                    href="#"
+                    className="relative inline-block font-medium text-[#2E62EA] after:absolute after:-bottom-0.5 after:left-0 after:h-0.5 after:w-0 after:bg-[#2E62EA] after:transition-all after:duration-300 hover:after:w-full"
+                  >
+                    Detail
+                  </a>
                 </td>
-              </tr>
+              </motion.tr>
             ))}
-          </tbody>
+          </motion.tbody>
         </table>
       </div>
-    </section>
+    </motion.section>
   );
 }
 
 function Attention() {
   return (
-    <section className="flex flex-col rounded-2xl border border-[#E8E9ED] bg-white p-8">
+    <motion.section
+      variants={naik}
+      className="flex flex-col rounded-2xl border border-[#E8E9ED] bg-white p-8 transition-shadow duration-300 hover:shadow-md"
+    >
       <div className="flex items-center justify-between">
         <h2 className="flex items-center gap-3 text-[24px] font-bold text-[#181B21]">
-          <span className="h-3 w-3 rounded-full bg-amber-500" />
+          <span className="h-3 w-3 animate-pulse rounded-full bg-amber-500" />
           Perlu Perhatian
         </h2>
         <span className="text-[15px] text-[#666666]">3 Perhatian</span>
       </div>
 
-      <div className="mt-8 flex-1 space-y-7">
+      <motion.div variants={wadahBaris} className="mt-8 flex-1 space-y-7">
         {perhatian.map((p) => (
-          <div key={p.judul}>
+          <motion.div
+            key={p.judul}
+            variants={baris}
+            className="transition-transform duration-200 hover:translate-x-1"
+          >
             <div className="flex items-start justify-between gap-4">
               <p className="max-w-[200px] text-[17px] font-bold leading-snug text-[#181B21]">{p.judul}</p>
               <a href="#" className="shrink-0 text-[15px] font-medium text-[#2E62EA] hover:underline">{p.link}</a>
             </div>
             <p className="mt-2 text-[15px] text-[#666666]">{p.desc}</p>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       <a
         href="#"
-        className="mt-6 flex items-center justify-center gap-2 text-[15px] font-medium text-[#181B21] hover:text-[#2E62EA]"
+        className="group mt-6 flex items-center justify-center gap-2 text-[15px] font-medium text-[#181B21] transition-colors hover:text-[#2E62EA]"
       >
-        Buka Pusat Notifikasi & Log <ArrowRight className="h-4 w-4" />
+        Buka Pusat Notifikasi & Log
+        <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
       </a>
-    </section>
+    </motion.section>
   );
 }
 
@@ -480,35 +617,37 @@ export default function DashboardPage() {
 
   return (
     <AdminShell>
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-[34px] font-bold text-[#181B21]">Dasboard</h1>
-          <p className="mt-2 text-[15px] text-[#666666]">
-            Selamat datang kembali, Admin. Kelola data dan informasi BKK dengan lebih mudah.
-          </p>
+      <motion.div variants={wadah} initial="tersembunyi" animate="tampil">
+        <motion.div variants={naik} className="flex items-start justify-between">
+          <div>
+            <h1 className="text-[34px] font-bold text-[#181B21]">Dasboard</h1>
+            <p className="mt-2 text-[15px] text-[#666666]">
+              Selamat datang kembali, Admin. Kelola data dan informasi BKK dengan lebih mudah.
+            </p>
+          </div>
+          <Segmented
+            options={["Bulan ini", "Bulan lalu", "Tahun 2026"]}
+            value={periode}
+            onChange={setPeriode}
+          />
+        </motion.div>
+
+        <div className="mt-9 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {stats.map((s) => (
+            <StatCard key={s.title} item={s} />
+          ))}
         </div>
-        <Segmented
-          options={["Bulan ini", "Bulan lalu", "Tahun 2026"]}
-          value={periode}
-          onChange={setPeriode}
-        />
-      </div>
 
-      <div className="mt-9 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-        {stats.map((s) => (
-          <StatCard key={s.title} item={s} />
-        ))}
-      </div>
+        <div className="mt-9 grid grid-cols-1 items-start gap-6 xl:grid-cols-[1.45fr_1fr]">
+          <OverviewChart />
+          <AlumniProgress />
+        </div>
 
-      <div className="mt-9 grid grid-cols-1 items-start gap-6 xl:grid-cols-[1.45fr_1fr]">
-        <OverviewChart />
-        <AlumniProgress />
-      </div>
-
-      <div className="mt-9 grid grid-cols-1 gap-6 xl:grid-cols-[1.75fr_1fr]">
-        <RecentJobs />
-        <Attention />
-      </div>
+        <div className="mt-9 grid grid-cols-1 gap-6 xl:grid-cols-[1.75fr_1fr]">
+          <RecentJobs />
+          <Attention />
+        </div>
+      </motion.div>
     </AdminShell>
   );
 }

@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname, useParams } from "next/navigation";
+import { motion, MotionConfig, type Variants } from "framer-motion";
 import {
   LayoutGrid,
   Briefcase,
   Building2,
-  Tag,
+  Brain,
   Users,
   GraduationCap,
   BarChart3,
@@ -48,7 +49,7 @@ const mainMenu: MenuItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutGrid },
   { label: "Lowongan", href: "/lowongan", icon: Briefcase, badge: "99+" },
   { label: "Perusahaan", href: "/perusahaan", icon: Building2 },
-  { label: "Kategori & Tag", href: "/kategori", icon: Tag },
+  { label: "Tes Psikotes", href: "/psikotes", icon: Brain },
   { label: "Siswa", href: "/siswa", icon: Users },
   { label: "Alumni", href: "/alumni", icon: GraduationCap },
   { label: "Monitoring Karier", href: "/monitoring", icon: BarChart3 },
@@ -65,11 +66,14 @@ function NavItem({ item, active }: { item: MenuItem; active: boolean }) {
   return (
     <Link
       href={item.href}
-      className={`flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium transition-colors ${
+      className={`group flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium transition-all duration-200 hover:translate-x-1 ${
         active ? "bg-[#DCE6FD] text-[#2E62EA]" : "text-[#181B21] hover:bg-[#DCE6FD]/60"
       }`}
     >
-      <Icon className={`h-5 w-5 ${active ? "text-[#2E62EA]" : "text-[#666666]"}`} strokeWidth={1.75} />
+      <Icon
+        className={`h-5 w-5 transition-transform duration-200 group-hover:scale-110 ${active ? "text-[#2E62EA]" : "text-[#666666]"}`}
+        strokeWidth={1.75}
+      />
       <span className="flex-1">{item.label}</span>
       {item.badge && (
         <span className="rounded-full bg-[#DCE6FD] px-2 py-0.5 text-xs font-semibold text-[#2E62EA]">
@@ -119,10 +123,10 @@ function Sidebar() {
 
       <div className="mx-5 flex items-center gap-3 border-t border-[#E8E9ED] py-5">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#2E62EA] text-base font-bold text-white ring-2 ring-[#DCE6FD]">
-          DN
+          FA
         </div>
         <div className="flex-1 leading-tight">
-          <p className="font-bold text-[#181B21]">Doni Subianto</p>
+          <p className="font-bold text-[#181B21]">Fachry Ahmad</p>
           <p className="text-sm text-[#666666]">SMKN 1 Cibinong</p>
         </div>
         <button aria-label="Keluar" className="text-[#666666] hover:text-[#181B21]">
@@ -143,7 +147,7 @@ function Topbar() {
       month: "long",
       year: "numeric",
     }).format(new Date());
-    setTanggal(t.replace(/^(\S+)/, "$1,"));
+    setTanggal(t.replace(/^([^\s,]+),?\s*/, "$1, "));
   }, []);
 
   return (
@@ -159,19 +163,31 @@ function Topbar() {
 
       <Link
         href="/lowongan/tambah"
-        className="flex h-[52px] items-center gap-3 rounded-lg bg-[#2E62EA] px-7 text-[15px] font-semibold text-white transition-colors hover:bg-[#4276E8]"
+        className="flex h-[52px] items-center gap-3 rounded-lg bg-[#2E62EA] px-7 text-[15px] font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#4276E8] hover:shadow-md active:scale-[0.98]"
       >
         <Plus className="h-5 w-5" strokeWidth={2.25} />
         Tambah Lowongan
       </Link>
 
-      <button
+      <motion.button
         aria-label="Notifikasi"
-        className="relative flex h-[52px] w-[62px] items-center justify-center rounded-lg border border-[#E8E9ED] bg-white text-[#181B21] hover:bg-[#EEF3FE]"
+        initial="diam"
+        whileHover="goyang"
+        whileTap={{ scale: 0.95 }}
+        className="relative flex h-[52px] w-[62px] items-center justify-center rounded-lg border border-[#E8E9ED] bg-white text-[#181B21] transition-colors hover:bg-[#EEF3FE]"
       >
-        <Bell className="h-6 w-6" strokeWidth={1.75} />
+        <motion.span
+          className="inline-flex origin-top"
+          variants={{
+            diam: { rotate: 0 },
+            goyang: { rotate: [0, -18, 14, -10, 6, 0], transition: { duration: 0.6 } },
+          }}
+        >
+          <Bell className="h-6 w-6" strokeWidth={1.75} />
+        </motion.span>
+        <span className="absolute right-[18px] top-[13px] h-2.5 w-2.5 animate-ping rounded-full bg-red-400 opacity-75" />
         <span className="absolute right-[18px] top-[13px] h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
-      </button>
+      </motion.button>
 
       <div className="flex h-[52px] min-w-[240px] items-center gap-3 rounded-lg border border-[#E8E9ED] bg-white px-5 text-[15px] text-[#666666]">
         <Calendar className="h-5 w-5" strokeWidth={1.75} />
@@ -180,10 +196,10 @@ function Topbar() {
 
       <div className="ml-auto flex items-center gap-3">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2E62EA] text-lg font-bold text-white ring-2 ring-[#DCE6FD]">
-          DN
+          FA
         </div>
         <div className="leading-tight">
-          <p className="text-xl font-bold text-[#181B21]">Doni Subianto</p>
+          <p className="text-xl font-bold text-[#181B21]">Fachry Ahmad</p>
           <span className="mt-1 inline-block rounded-full bg-[#DCE6FD] px-3 py-0.5 text-sm text-[#2E62EA]">
             Super Admin
           </span>
@@ -195,15 +211,50 @@ function Topbar() {
 
 function AdminShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F6F7F8] font-sans text-[#181B21]">
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
-        <main className="flex-1 overflow-y-auto px-10 py-10">{children}</main>
+    <MotionConfig reducedMotion="user">
+      <div className="flex h-screen overflow-hidden bg-[#F6F7F8] font-sans text-[#181B21]">
+        <Sidebar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Topbar />
+          <main className="flex-1 overflow-y-auto px-10 py-10">{children}</main>
+        </div>
       </div>
-    </div>
+    </MotionConfig>
   );
 }
+
+/* ============================ ANIMASI ============================ */
+// Memakai framer-motion (sudah terpasang di project, dipakai juga di halaman login).
+// Otomatis menyesuaikan dengan pengaturan "kurangi animasi" di perangkat (lihat MotionConfig di AdminShell).
+
+const easeHalus: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
+// Kontainer: anak-anaknya muncul satu per satu
+const wadah: Variants = {
+  tersembunyi: {},
+  tampil: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+};
+
+// Elemen muncul dari bawah sambil memudar masuk
+const naik: Variants = {
+  tersembunyi: { opacity: 0, y: 18 },
+  tampil: { opacity: 1, y: 0, transition: { duration: 0.5, ease: easeHalus } },
+};
+
+// Kartu yang isinya (kolom form) ikut muncul berurutan
+const naikKartu: Variants = {
+  tersembunyi: { opacity: 0, y: 18 },
+  tampil: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: easeHalus, staggerChildren: 0.05, delayChildren: 0.15 },
+  },
+};
+
+const baris: Variants = {
+  tersembunyi: { opacity: 0, x: -12 },
+  tampil: { opacity: 1, x: 0, transition: { duration: 0.35, ease: easeHalus } },
+};
 
 /* ============================ DATA & VALIDASI FORM ============================ */
 
@@ -268,11 +319,19 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className={`block ${className}`}>
+    <motion.label variants={baris} className={`block ${className}`}>
       <span className="mb-2 block text-[15px] font-medium text-[#181B21]">{label}</span>
       {children}
-      {error && <span className="mt-1.5 block text-sm text-red-600">{error}</span>}
-    </label>
+      {error && (
+        <motion.span
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-1.5 block text-sm text-red-600"
+        >
+          {error}
+        </motion.span>
+      )}
+    </motion.label>
   );
 }
 
@@ -288,7 +347,10 @@ function FormPerusahaan({
   ubah: (k: keyof FormData, v: string) => void;
 }) {
   return (
-    <section className="rounded-2xl border border-[#E8E9ED] bg-white px-8 py-8">
+    <motion.section
+      variants={naikKartu}
+      className="rounded-2xl border border-[#E8E9ED] bg-white px-8 py-8 transition-shadow duration-300 hover:shadow-md"
+    >
       <h2 className="flex items-center gap-3 text-[24px] font-bold text-[#181B21]">
         <Info className="h-7 w-7 text-[#2E62EA]" strokeWidth={1.75} />
         {judul}
@@ -411,7 +473,7 @@ function FormPerusahaan({
           />
         </Field>
       </div>
-    </section>
+    </motion.section>
   );
 }
 
@@ -467,35 +529,41 @@ export default function EditPerusahaanPage() {
 
   return (
     <AdminShell>
-      <Link
-        href="/perusahaan"
-        className="inline-flex items-center gap-3 text-[15px] font-medium text-[#2E62EA] hover:underline"
-      >
-        <ArrowLeft className="h-5 w-5" />
-        Batal dan Kembali
-      </Link>
-
-      <h1 className="mt-7 text-[34px] font-bold text-[#181B21]">Edit Perusahaan</h1>
-
-      <form onSubmit={simpan} noValidate className="mt-7">
-        <FormPerusahaan
-          judul="Edit Data Perusahaan ( DUDI )"
-          form={form}
-          errors={errors}
-          ubah={ubah}
-        />
-
-        <div className="mt-8 flex justify-end">
-          <button
-            type="submit"
-            disabled={menyimpan}
-            className="flex h-[54px] items-center gap-3 rounded-lg bg-[#2E62EA] px-8 text-[16px] font-semibold text-white transition-colors hover:bg-[#4276E8] disabled:cursor-not-allowed disabled:opacity-60"
+      <motion.div variants={wadah} initial="tersembunyi" animate="tampil">
+        <motion.div variants={naik}>
+          <Link
+            href="/perusahaan"
+            className="inline-flex items-center gap-3 text-[15px] font-medium text-[#2E62EA] hover:underline"
           >
-            <Pencil className="h-5 w-5" strokeWidth={2.25} />
-            {menyimpan ? "Menyimpan..." : "Edit Perusahaan"}
-          </button>
-        </div>
-      </form>
+            <ArrowLeft className="h-5 w-5" />
+            Batal dan Kembali
+          </Link>
+
+          <h1 className="mt-7 text-[34px] font-bold text-[#181B21]">Edit Perusahaan</h1>
+        </motion.div>
+
+        <form onSubmit={simpan} noValidate className="mt-7">
+          <FormPerusahaan
+            judul="Edit Data Perusahaan ( DUDI )"
+            form={form}
+            errors={errors}
+            ubah={ubah}
+          />
+
+          <motion.div variants={naik} className="mt-8 flex justify-end">
+            <motion.button
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              type="submit"
+              disabled={menyimpan}
+              className="flex h-[54px] items-center gap-3 rounded-lg bg-[#2E62EA] px-8 text-[16px] font-semibold text-white transition-colors hover:bg-[#4276E8] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Pencil className="h-5 w-5" strokeWidth={2.25} />
+              {menyimpan ? "Menyimpan..." : "Edit Perusahaan"}
+            </motion.button>
+          </motion.div>
+        </form>
+      </motion.div>
     </AdminShell>
   );
 }

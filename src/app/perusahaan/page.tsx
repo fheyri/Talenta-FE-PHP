@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion, MotionConfig, type Variants } from "framer-motion";
 import {
   LayoutGrid,
   Briefcase,
   Building2,
-  Tag,
+  Brain,
   Users,
   GraduationCap,
   BarChart3,
@@ -24,7 +25,6 @@ import {
   MoreVertical,
   ArrowLeft,
   ArrowRight,
-  ClipboardList,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -49,7 +49,7 @@ const mainMenu: MenuItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutGrid },
   { label: "Lowongan", href: "/lowongan", icon: Briefcase, badge: "99+" },
   { label: "Perusahaan", href: "/perusahaan", icon: Building2 },
-  { label: "Psikotes", href: "/psikotes", icon: ClipboardList },
+  { label: "Tes Psikotes", href: "/psikotes", icon: Brain },
   { label: "Siswa", href: "/siswa", icon: Users },
   { label: "Alumni", href: "/alumni", icon: GraduationCap },
   { label: "Monitoring Karier", href: "/monitoring", icon: BarChart3 },
@@ -66,11 +66,14 @@ function NavItem({ item, active }: { item: MenuItem; active: boolean }) {
   return (
     <Link
       href={item.href}
-      className={`flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium transition-colors ${
+      className={`group flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium transition-all duration-200 hover:translate-x-1 ${
         active ? "bg-[#DCE6FD] text-[#2E62EA]" : "text-[#181B21] hover:bg-[#DCE6FD]/60"
       }`}
     >
-      <Icon className={`h-5 w-5 ${active ? "text-[#2E62EA]" : "text-[#666666]"}`} strokeWidth={1.75} />
+      <Icon
+        className={`h-5 w-5 transition-transform duration-200 group-hover:scale-110 ${active ? "text-[#2E62EA]" : "text-[#666666]"}`}
+        strokeWidth={1.75}
+      />
       <span className="flex-1">{item.label}</span>
       {item.badge && (
         <span className="rounded-full bg-[#DCE6FD] px-2 py-0.5 text-xs font-semibold text-[#2E62EA]">
@@ -144,7 +147,7 @@ function Topbar() {
       month: "long",
       year: "numeric",
     }).format(new Date());
-    setTanggal(t.replace(/^(\S+)/, "$1,"));
+    setTanggal(t.replace(/^([^\s,]+),?\s*/, "$1, "));
   }, []);
 
   return (
@@ -160,19 +163,31 @@ function Topbar() {
 
       <Link
         href="/lowongan/tambah"
-        className="flex h-[52px] items-center gap-3 rounded-lg bg-[#2E62EA] px-7 text-[15px] font-semibold text-white transition-colors hover:bg-[#4276E8]"
+        className="flex h-[52px] items-center gap-3 rounded-lg bg-[#2E62EA] px-7 text-[15px] font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#4276E8] hover:shadow-md active:scale-[0.98]"
       >
         <Plus className="h-5 w-5" strokeWidth={2.25} />
         Tambah Lowongan
       </Link>
 
-      <button
+      <motion.button
         aria-label="Notifikasi"
-        className="relative flex h-[52px] w-[62px] items-center justify-center rounded-lg border border-[#E8E9ED] bg-white text-[#181B21] hover:bg-[#EEF3FE]"
+        initial="diam"
+        whileHover="goyang"
+        whileTap={{ scale: 0.95 }}
+        className="relative flex h-[52px] w-[62px] items-center justify-center rounded-lg border border-[#E8E9ED] bg-white text-[#181B21] transition-colors hover:bg-[#EEF3FE]"
       >
-        <Bell className="h-6 w-6" strokeWidth={1.75} />
+        <motion.span
+          className="inline-flex origin-top"
+          variants={{
+            diam: { rotate: 0 },
+            goyang: { rotate: [0, -18, 14, -10, 6, 0], transition: { duration: 0.6 } },
+          }}
+        >
+          <Bell className="h-6 w-6" strokeWidth={1.75} />
+        </motion.span>
+        <span className="absolute right-[18px] top-[13px] h-2.5 w-2.5 animate-ping rounded-full bg-red-400 opacity-75" />
         <span className="absolute right-[18px] top-[13px] h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
-      </button>
+      </motion.button>
 
       <div className="flex h-[52px] min-w-[240px] items-center gap-3 rounded-lg border border-[#E8E9ED] bg-white px-5 text-[15px] text-[#666666]">
         <Calendar className="h-5 w-5" strokeWidth={1.75} />
@@ -196,14 +211,70 @@ function Topbar() {
 
 function AdminShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F6F7F8] font-sans text-[#181B21]">
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
-        <main className="flex-1 overflow-y-auto px-10 py-10">{children}</main>
+    <MotionConfig reducedMotion="user">
+      <div className="flex h-screen overflow-hidden bg-[#F6F7F8] font-sans text-[#181B21]">
+        <Sidebar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Topbar />
+          <main className="flex-1 overflow-y-auto px-10 py-10">{children}</main>
+        </div>
       </div>
-    </div>
+    </MotionConfig>
   );
+}
+
+/* ============================ ANIMASI ============================ */
+// Memakai framer-motion (sudah terpasang di project, dipakai juga di halaman login).
+// Otomatis menyesuaikan dengan pengaturan "kurangi animasi" di perangkat (lihat MotionConfig di AdminShell).
+
+const easeHalus: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
+// Kontainer: anak-anaknya muncul satu per satu
+const wadah: Variants = {
+  tersembunyi: {},
+  tampil: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+};
+
+// Elemen muncul dari bawah sambil memudar masuk
+const naik: Variants = {
+  tersembunyi: { opacity: 0, y: 18 },
+  tampil: { opacity: 1, y: 0, transition: { duration: 0.5, ease: easeHalus } },
+};
+
+// Untuk baris tabel / daftar
+const wadahBaris: Variants = {
+  tersembunyi: {},
+  tampil: { transition: { staggerChildren: 0.045, delayChildren: 0.15 } },
+};
+
+const baris: Variants = {
+  tersembunyi: { opacity: 0, x: -12 },
+  tampil: { opacity: 1, x: 0, transition: { duration: 0.35, ease: easeHalus } },
+};
+
+// Angka yang menghitung naik dari 0 saat halaman dibuka
+function AngkaNaik({ nilai }: { nilai: string }) {
+  const target = Number(nilai.replace(/\D/g, ""));
+  const [tampil, setTampil] = useState(0);
+
+  useEffect(() => {
+    const kurangiGerak = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const durasi = kurangiGerak ? 0 : 1000;
+    const mulai = performance.now();
+    let frame = 0;
+
+    const tick = (sekarang: number) => {
+      const p = durasi === 0 ? 1 : Math.min((sekarang - mulai) / durasi, 1);
+      const halus = 1 - Math.pow(1 - p, 3);
+      setTampil(Math.round(target * halus));
+      if (p < 1) frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [target]);
+
+  return <>{new Intl.NumberFormat("id-ID").format(tampil)}</>;
 }
 
 /* ============================ TOMBOL PILIHAN PERIODE ============================ */
@@ -223,7 +294,7 @@ function Segmented({
         <button
           key={opt}
           onClick={() => onChange(opt)}
-          className={`rounded-md px-5 py-2 text-[15px] font-medium transition-colors ${
+          className={`rounded-md px-5 py-2 text-[15px] font-medium transition-all active:scale-95 ${
             value === opt
               ? "bg-white text-[#2E62EA] shadow-sm"
               : "text-[#666666] hover:text-[#181B21]"
@@ -345,7 +416,12 @@ function RowMenu({ id, onHapus }: { id: number; onHapus: () => void }) {
             className="fixed inset-0 z-10 cursor-default"
             onClick={() => setBuka(false)}
           />
-          <div className="absolute right-0 z-20 mt-1 w-40 overflow-hidden rounded-lg border border-[#E8E9ED] bg-white py-1 shadow-lg">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 z-20 mt-1 w-40 origin-top-right overflow-hidden rounded-lg border border-[#E8E9ED] bg-white py-1 shadow-lg"
+          >
             <Link
               href={`/perusahaan/${id}`}
               className="block px-4 py-2.5 text-[15px] text-[#181B21] hover:bg-[#EEF3FE]"
@@ -367,7 +443,7 @@ function RowMenu({ id, onHapus }: { id: number; onHapus: () => void }) {
             >
               Hapus
             </button>
-          </div>
+          </motion.div>
         </>
       )}
     </div>
@@ -396,167 +472,188 @@ export default function PerusahaanPage() {
 
   return (
     <AdminShell>
-      {/* Judul */}
-      <div className="flex items-start justify-between gap-6">
-        <div>
-          <h1 className="text-[34px] font-bold text-[#181B21]">Perusahaan</h1>
-          <p className="mt-2 text-[15px] text-[#666666]">
-            Kelola data perusahaan yang menjadi sumber informasi lowongan di TALENTA.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-5">
-          <Link
-            href="/perusahaan/tambah"
-            className="flex h-[54px] items-center gap-3 rounded-lg bg-[#2E62EA] px-7 text-[15px] font-semibold text-white transition-colors hover:bg-[#4276E8]"
-          >
-            <Plus className="h-5 w-5" strokeWidth={2.25} />
-            Tambah Perusahaan
-          </Link>
-          <Segmented
-            options={["Bulan ini", "Bulan lalu", "Tahun 2026"]}
-            value={periode}
-            onChange={setPeriode}
-          />
-        </div>
-      </div>
-
-      {/* 4 kartu */}
-      <div className="mt-9 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-        {stats.map((s) => {
-          const Icon = s.icon;
-          return (
-            <div
-              key={s.title}
-              className="rounded-2xl border border-[#E8E9ED] bg-white px-6 py-5 shadow-sm"
-            >
-              <p className="text-[15px] text-[#666666]">{s.title}</p>
-              <div className="mt-4 flex items-center justify-between">
-                <p className="text-[34px] font-bold leading-none text-[#181B21]">{s.value}</p>
-                <span className={`flex h-11 w-11 items-center justify-center rounded-lg ${s.iconBox}`}>
-                  <Icon className="h-5 w-5" strokeWidth={1.75} />
-                </span>
-              </div>
-              <p className={`mt-3 flex items-center gap-2 text-[15px] ${s.noteColor}`}>
-                <span className={`h-2 w-2 rounded-full ${s.dot}`} />
-                {s.note}
-              </p>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Tabel */}
-      <section className="mt-9 overflow-hidden rounded-2xl border border-[#E8E9ED] bg-white">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-left text-[15px]">
-            <thead>
-              <tr className="border-b border-[#E8E9ED] bg-[#EEF3FE]/50 text-[#181B21]">
-                <th className="px-8 py-5 font-bold">Perusahaan</th>
-                <th className="px-4 py-5 font-bold">Bidang</th>
-                <th className="px-4 py-5 font-bold">LOKASI</th>
-                <th className="px-4 py-5 text-center font-bold">Jumlah Lowongan</th>
-                <th className="px-4 py-5 text-center font-bold">STATUS</th>
-                <th className="px-4 py-5 text-center font-bold">Lowongan Aktif</th>
-                <th className="px-8 py-5 text-center font-bold">AKSI</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tampil.map((p) => (
-                <tr key={p.id} className="border-b border-[#E8E9ED] last:border-b-0">
-                  <td className="px-8 py-6">
-                    <p className="font-bold text-[#181B21]">{p.nama}</p>
-                    <p className="mt-1 text-sm text-[#666666]">
-                      ID : {p.kode}
-                      {p.terverifikasi && " • Terverifikasi"}
-                    </p>
-                  </td>
-                  <td className="px-4 py-6">
-                    <span className="inline-block whitespace-nowrap rounded-md bg-[#DCE6FD] px-3.5 py-2 text-sm font-semibold text-[#2E62EA]">
-                      {p.bidang}
-                    </span>
-                  </td>
-                  <td className="px-4 py-6 text-[#666666]">{p.lokasi}</td>
-                  <td className="px-4 py-6 text-center text-[#666666]">{p.jumlahLowongan}</td>
-                  <td className="px-4 py-6 text-center">
-                    <span
-                      className={`inline-block rounded-md border px-4 py-1.5 font-medium ${
-                        p.aktif
-                          ? "border-green-300 bg-green-50 text-green-700"
-                          : "border-[#E8E9ED] bg-[#F6F7F8] text-[#666666]"
-                      }`}
-                    >
-                      {p.aktif ? "Aktif" : "Nonaktif"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-6 text-center">
-                    <span className="inline-block whitespace-nowrap rounded-md border border-green-300 bg-green-50 px-4 py-1.5 font-medium text-green-700">
-                      {p.lowonganAktif} Aktif
-                    </span>
-                  </td>
-                  <td className="px-8 py-6 text-center">
-                    <RowMenu id={p.id} onHapus={() => hapus(p.id, p.nama)} />
-                  </td>
-                </tr>
-              ))}
-
-              {tampil.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-8 py-14 text-center text-[#666666]">
-                    Belum ada data perusahaan. Klik <b>Tambah Perusahaan</b> untuk menambahkan.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[#E8E9ED] px-8 py-5">
-          <p className="text-[17px] font-bold text-[#181B21]">
-            Menampilkan {data.length === 0 ? 0 : awal + 1}-{Math.min(awal + PER_HALAMAN, data.length)} dari{" "}
-            {data.length} Perusahaan
-          </p>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setHalaman((h) => Math.max(1, h - 1))}
-              disabled={halaman === 1}
-              className="flex h-11 items-center gap-2 rounded-lg border border-[#E8E9ED] px-5 text-[15px] font-medium text-[#181B21] hover:bg-[#EEF3FE] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <ArrowLeft className="h-4 w-4" /> Previous
-            </button>
-
-            {buatDaftarHalaman(halaman, totalHalaman).map((h, i) =>
-              h === "..." ? (
-                <span key={`titik-${i}`} className="px-2 text-xl font-bold text-[#181B21]">
-                  •••
-                </span>
-              ) : (
-                <button
-                  key={h}
-                  onClick={() => setHalaman(h)}
-                  className={`h-11 w-11 rounded-lg border text-[15px] font-medium ${
-                    h === halaman
-                      ? "border-[#2E62EA] bg-[#2E62EA] text-white"
-                      : "border-[#E8E9ED] text-[#181B21] hover:bg-[#EEF3FE]"
-                  }`}
-                >
-                  {h}
-                </button>
-              )
-            )}
-
-            <button
-              onClick={() => setHalaman((h) => Math.min(totalHalaman, h + 1))}
-              disabled={halaman === totalHalaman}
-              className="flex h-11 items-center gap-2 rounded-lg border border-[#E8E9ED] px-5 text-[15px] font-medium text-[#181B21] hover:bg-[#EEF3FE] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Next <ArrowRight className="h-4 w-4" />
-            </button>
+      <motion.div variants={wadah} initial="tersembunyi" animate="tampil">
+        {/* Judul */}
+        <motion.div variants={naik} className="flex items-start justify-between gap-6">
+          <div>
+            <h1 className="text-[34px] font-bold text-[#181B21]">Perusahaan</h1>
+            <p className="mt-2 text-[15px] text-[#666666]">
+              Kelola data perusahaan yang menjadi sumber informasi lowongan di TALENTA.
+            </p>
           </div>
+
+          <div className="flex items-center gap-5">
+            <Link
+              href="/perusahaan/tambah"
+              className="flex h-[54px] items-center gap-3 rounded-lg bg-[#2E62EA] px-7 text-[15px] font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#4276E8] hover:shadow-md active:scale-[0.98]"
+            >
+              <Plus className="h-5 w-5" strokeWidth={2.25} />
+              Tambah Perusahaan
+            </Link>
+            <Segmented
+              options={["Bulan ini", "Bulan lalu", "Tahun 2026"]}
+              value={periode}
+              onChange={setPeriode}
+            />
+          </div>
+        </motion.div>
+
+        {/* 4 kartu */}
+        <div className="mt-9 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {stats.map((s) => {
+            const Icon = s.icon;
+            return (
+              <motion.div
+                key={s.title}
+                variants={naik}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                className="group rounded-2xl border border-[#E8E9ED] bg-white px-6 py-5 shadow-sm transition-[box-shadow,border-color] duration-300 hover:border-[#6F94EE] hover:shadow-lg"
+              >
+                <p className="text-[15px] text-[#666666]">{s.title}</p>
+                <div className="mt-4 flex items-center justify-between">
+                  <p className="text-[34px] font-bold leading-none text-[#181B21]">
+                    <AngkaNaik nilai={s.value} />
+                  </p>
+                  <span
+                    className={`flex h-11 w-11 items-center justify-center rounded-lg transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110 ${s.iconBox}`}
+                  >
+                    <Icon className="h-5 w-5" strokeWidth={1.75} />
+                  </span>
+                </div>
+                <p className={`mt-3 flex items-center gap-2 text-[15px] ${s.noteColor}`}>
+                  <span className={`h-2 w-2 rounded-full ${s.dot}`} />
+                  {s.note}
+                </p>
+              </motion.div>
+            );
+          })}
         </div>
-      </section>
+
+        {/* Tabel */}
+        <motion.section
+          variants={naik}
+          className="mt-9 overflow-hidden rounded-2xl border border-[#E8E9ED] bg-white"
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px] text-left text-[15px]">
+              <thead>
+                <tr className="border-b border-[#E8E9ED] bg-[#EEF3FE]/50 text-[#181B21]">
+                  <th className="px-8 py-5 font-bold">Perusahaan</th>
+                  <th className="px-4 py-5 font-bold">Bidang</th>
+                  <th className="px-4 py-5 font-bold">LOKASI</th>
+                  <th className="px-4 py-5 text-center font-bold">Jumlah Lowongan</th>
+                  <th className="px-4 py-5 text-center font-bold">STATUS</th>
+                  <th className="px-4 py-5 text-center font-bold">Lowongan Aktif</th>
+                  <th className="px-8 py-5 text-center font-bold">AKSI</th>
+                </tr>
+              </thead>
+              {/* key={halaman}: baris muncul ulang dengan animasi setiap pindah halaman */}
+              <motion.tbody key={halaman} variants={wadahBaris} initial="tersembunyi" animate="tampil">
+                {tampil.map((p) => (
+                  <motion.tr
+                    key={p.id}
+                    variants={baris}
+                    className="group border-b border-[#E8E9ED] transition-colors duration-200 last:border-b-0 hover:bg-[#EEF3FE]/60"
+                  >
+                    <td className="px-8 py-6">
+                      <p className="font-bold text-[#181B21] transition-colors group-hover:text-[#2E62EA]">
+                        {p.nama}
+                      </p>
+                      <p className="mt-1 text-sm text-[#666666]">
+                        ID : {p.kode}
+                        {p.terverifikasi && " • Terverifikasi"}
+                      </p>
+                    </td>
+                    <td className="px-4 py-6">
+                      <span className="inline-block whitespace-nowrap rounded-md bg-[#DCE6FD] px-3.5 py-2 text-sm font-semibold text-[#2E62EA]">
+                        {p.bidang}
+                      </span>
+                    </td>
+                    <td className="px-4 py-6 text-[#666666]">{p.lokasi}</td>
+                    <td className="px-4 py-6 text-center text-[#666666]">{p.jumlahLowongan}</td>
+                    <td className="px-4 py-6 text-center">
+                      <span
+                        className={`inline-block rounded-md border px-4 py-1.5 font-medium ${
+                          p.aktif
+                            ? "border-green-300 bg-green-50 text-green-700"
+                            : "border-[#E8E9ED] bg-[#F6F7F8] text-[#666666]"
+                        }`}
+                      >
+                        {p.aktif ? "Aktif" : "Nonaktif"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-6 text-center">
+                      <span className="inline-block whitespace-nowrap rounded-md border border-green-300 bg-green-50 px-4 py-1.5 font-medium text-green-700">
+                        {p.lowonganAktif} Aktif
+                      </span>
+                    </td>
+                    <td className="px-8 py-6 text-center">
+                      <RowMenu id={p.id} onHapus={() => hapus(p.id, p.nama)} />
+                    </td>
+                  </motion.tr>
+                ))}
+
+                {tampil.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="px-8 py-14 text-center text-[#666666]">
+                      Belum ada data perusahaan. Klik <b>Tambah Perusahaan</b> untuk menambahkan.
+                    </td>
+                  </tr>
+                )}
+              </motion.tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[#E8E9ED] px-8 py-5">
+            <p className="text-[17px] font-bold text-[#181B21]">
+              Menampilkan {data.length === 0 ? 0 : awal + 1}-{Math.min(awal + PER_HALAMAN, data.length)} dari{" "}
+              {data.length} Perusahaan
+            </p>
+
+            <div className="flex items-center gap-3">
+              <motion.button
+                whileTap={{ scale: 0.94 }}
+                onClick={() => setHalaman((h) => Math.max(1, h - 1))}
+                disabled={halaman === 1}
+                className="flex h-11 items-center gap-2 rounded-lg border border-[#E8E9ED] px-5 text-[15px] font-medium text-[#181B21] transition-colors hover:bg-[#EEF3FE] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <ArrowLeft className="h-4 w-4" /> Previous
+              </motion.button>
+
+              {buatDaftarHalaman(halaman, totalHalaman).map((h, i) =>
+                h === "..." ? (
+                  <span key={`titik-${i}`} className="px-2 text-xl font-bold text-[#181B21]">
+                    •••
+                  </span>
+                ) : (
+                  <motion.button
+                    key={h}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setHalaman(h)}
+                    className={`h-11 w-11 rounded-lg border text-[15px] font-medium transition-colors ${
+                      h === halaman
+                        ? "border-[#2E62EA] bg-[#2E62EA] text-white"
+                        : "border-[#E8E9ED] text-[#181B21] hover:bg-[#EEF3FE]"
+                    }`}
+                  >
+                    {h}
+                  </motion.button>
+                )
+              )}
+
+              <motion.button
+                whileTap={{ scale: 0.94 }}
+                onClick={() => setHalaman((h) => Math.min(totalHalaman, h + 1))}
+                disabled={halaman === totalHalaman}
+                className="flex h-11 items-center gap-2 rounded-lg border border-[#E8E9ED] px-5 text-[15px] font-medium text-[#181B21] transition-colors hover:bg-[#EEF3FE] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next <ArrowRight className="h-4 w-4" />
+              </motion.button>
+            </div>
+          </div>
+        </motion.section>
+      </motion.div>
     </AdminShell>
   );
 }

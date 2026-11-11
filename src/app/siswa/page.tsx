@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion, MotionConfig, type Variants } from "framer-motion";
 import {
   LayoutGrid,
   Briefcase,
   Building2,
-  ClipboardList,
+  Brain,
   Users,
   GraduationCap,
   BarChart3,
@@ -48,7 +49,7 @@ const mainMenu: MenuItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutGrid },
   { label: "Lowongan", href: "/lowongan", icon: Briefcase, badge: "99+" },
   { label: "Perusahaan", href: "/perusahaan", icon: Building2 },
-  { label: "Psikotes", href: "/psikotes", icon: ClipboardList },
+  { label: "Tes Psikotes", href: "/psikotes", icon: Brain },
   { label: "Siswa", href: "/siswa", icon: Users },
   { label: "Alumni", href: "/alumni", icon: GraduationCap },
   { label: "Monitoring Karier", href: "/monitoring", icon: BarChart3 },
@@ -65,11 +66,14 @@ function NavItem({ item, active }: { item: MenuItem; active: boolean }) {
   return (
     <Link
       href={item.href}
-      className={`flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium transition-colors ${
+      className={`group flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium transition-all duration-200 hover:translate-x-1 ${
         active ? "bg-[#DCE6FD] text-[#2E62EA]" : "text-[#181B21] hover:bg-[#DCE6FD]/60"
       }`}
     >
-      <Icon className={`h-5 w-5 ${active ? "text-[#2E62EA]" : "text-[#666666]"}`} strokeWidth={1.75} />
+      <Icon
+        className={`h-5 w-5 transition-transform duration-200 group-hover:scale-110 ${active ? "text-[#2E62EA]" : "text-[#666666]"}`}
+        strokeWidth={1.75}
+      />
       <span className="flex-1">{item.label}</span>
       {item.badge && (
         <span className="rounded-full bg-[#DCE6FD] px-2 py-0.5 text-xs font-semibold text-[#2E62EA]">
@@ -122,7 +126,7 @@ function Sidebar() {
           FA
         </div>
         <div className="flex-1 leading-tight">
-          <p className="font-bold text-[#181B21]">Fachry Achmad</p>
+          <p className="font-bold text-[#181B21]">Fachry Ahmad</p>
           <p className="text-sm text-[#666666]">SMKN 1 Cibinong</p>
         </div>
         <button aria-label="Keluar" className="text-[#666666] hover:text-[#181B21]">
@@ -159,19 +163,31 @@ function Topbar() {
 
       <Link
         href="/lowongan/tambah"
-        className="flex h-[52px] items-center gap-3 rounded-lg bg-[#2E62EA] px-7 text-[15px] font-semibold text-white transition-colors hover:bg-[#4276E8]"
+        className="flex h-[52px] items-center gap-3 rounded-lg bg-[#2E62EA] px-7 text-[15px] font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#4276E8] hover:shadow-md active:scale-[0.98]"
       >
         <Plus className="h-5 w-5" strokeWidth={2.25} />
         Tambah Lowongan
       </Link>
 
-      <button
+      <motion.button
         aria-label="Notifikasi"
-        className="relative flex h-[52px] w-[62px] items-center justify-center rounded-lg border border-[#E8E9ED] bg-white text-[#181B21] hover:bg-[#EEF3FE]"
+        initial="diam"
+        whileHover="goyang"
+        whileTap={{ scale: 0.95 }}
+        className="relative flex h-[52px] w-[62px] items-center justify-center rounded-lg border border-[#E8E9ED] bg-white text-[#181B21] transition-colors hover:bg-[#EEF3FE]"
       >
-        <Bell className="h-6 w-6" strokeWidth={1.75} />
+        <motion.span
+          className="inline-flex origin-top"
+          variants={{
+            diam: { rotate: 0 },
+            goyang: { rotate: [0, -18, 14, -10, 6, 0], transition: { duration: 0.6 } },
+          }}
+        >
+          <Bell className="h-6 w-6" strokeWidth={1.75} />
+        </motion.span>
+        <span className="absolute right-[18px] top-[13px] h-2.5 w-2.5 animate-ping rounded-full bg-red-400 opacity-75" />
         <span className="absolute right-[18px] top-[13px] h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
-      </button>
+      </motion.button>
 
       <div className="flex h-[52px] min-w-[240px] items-center gap-3 rounded-lg border border-[#E8E9ED] bg-white px-5 text-[15px] text-[#666666]">
         <Calendar className="h-5 w-5" strokeWidth={1.75} />
@@ -183,7 +199,7 @@ function Topbar() {
           FA
         </div>
         <div className="leading-tight">
-          <p className="text-xl font-bold text-[#181B21]">Fachry Achmad</p>
+          <p className="text-xl font-bold text-[#181B21]">Fachry Ahmad</p>
           <span className="mt-1 inline-block rounded-full bg-[#DCE6FD] px-3 py-0.5 text-sm text-[#2E62EA]">
             Super Admin
           </span>
@@ -195,14 +211,70 @@ function Topbar() {
 
 function AdminShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F6F7F8] font-sans text-[#181B21]">
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
-        <main className="flex-1 overflow-y-auto px-10 py-10">{children}</main>
+    <MotionConfig reducedMotion="user">
+      <div className="flex h-screen overflow-hidden bg-[#F6F7F8] font-sans text-[#181B21]">
+        <Sidebar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Topbar />
+          <main className="flex-1 overflow-y-auto px-10 py-10">{children}</main>
+        </div>
       </div>
-    </div>
+    </MotionConfig>
   );
+}
+
+/* ============================ ANIMASI ============================ */
+// Memakai framer-motion (sudah terpasang di project, dipakai juga di halaman login).
+// Otomatis menyesuaikan dengan pengaturan "kurangi animasi" di perangkat (lihat MotionConfig di AdminShell).
+
+const easeHalus: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
+// Kontainer: anak-anaknya muncul satu per satu
+const wadah: Variants = {
+  tersembunyi: {},
+  tampil: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+};
+
+// Elemen muncul dari bawah sambil memudar masuk
+const naik: Variants = {
+  tersembunyi: { opacity: 0, y: 18 },
+  tampil: { opacity: 1, y: 0, transition: { duration: 0.5, ease: easeHalus } },
+};
+
+// Untuk baris tabel / daftar
+const wadahBaris: Variants = {
+  tersembunyi: {},
+  tampil: { transition: { staggerChildren: 0.045, delayChildren: 0.15 } },
+};
+
+const baris: Variants = {
+  tersembunyi: { opacity: 0, x: -12 },
+  tampil: { opacity: 1, x: 0, transition: { duration: 0.35, ease: easeHalus } },
+};
+
+// Angka yang menghitung naik dari 0 saat halaman dibuka
+function AngkaNaik({ nilai }: { nilai: string }) {
+  const target = Number(nilai.replace(/\D/g, ""));
+  const [tampil, setTampil] = useState(0);
+
+  useEffect(() => {
+    const kurangiGerak = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const durasi = kurangiGerak ? 0 : 1000;
+    const mulai = performance.now();
+    let frame = 0;
+
+    const tick = (sekarang: number) => {
+      const p = durasi === 0 ? 1 : Math.min((sekarang - mulai) / durasi, 1);
+      const halus = 1 - Math.pow(1 - p, 3);
+      setTampil(Math.round(target * halus));
+      if (p < 1) frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [target]);
+
+  return <>{new Intl.NumberFormat("id-ID").format(tampil)}</>;
 }
 
 /* ============================ DATA DUMMY ============================ */
@@ -222,7 +294,7 @@ type Siswa = {
 const contoh = [
   "Arvin Hadiyyatullah",
   "El Razqa Chaeruzzaman",
-  "Fachry Achmad",
+  "Fachry Ahmad",
   "Jilan Indah Aprilianti",
   "Putri Nuraini",
   "Talita Vicki Sakhi",
@@ -286,8 +358,6 @@ const stats = [
   },
 ];
 
-/* ============================ KOMPONEN ============================ */
-
 function buatDaftarHalaman(sekarang: number, total: number): (number | "...")[] {
   if (total <= 6) return Array.from({ length: total }, (_, i) => i + 1);
   if (sekarang <= 3) return [1, 2, 3, "...", total];
@@ -306,106 +376,121 @@ export default function SiswaPage() {
 
   return (
     <AdminShell>
-      {/* Judul */}
-      <div>
-        <h1 className="text-[34px] font-bold text-[#181B21]">Manajemen Siswa</h1>
-        <p className="mt-2 text-[15px] text-[#666666]">
-          Kelola data siswa yang terdaftar sebagai pengguna di TALENTA.
-        </p>
-      </div>
+      <motion.div variants={wadah} initial="tersembunyi" animate="tampil">
+        {/* Judul */}
+        <motion.div variants={naik}>
+          <h1 className="text-[34px] font-bold text-[#181B21]">Manajemen Siswa</h1>
+          <p className="mt-2 text-[15px] text-[#666666]">
+            Kelola data siswa yang terdaftar sebagai pengguna di TALENTA.
+          </p>
+        </motion.div>
 
-      {/* 4 kartu */}
-      <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-        {stats.map((s) => {
-          const Icon = s.icon;
-          return (
-            <div
-              key={s.title}
-              className="rounded-2xl border border-[#E8E9ED] bg-white px-6 py-5 shadow-sm"
-            >
-              <p className="text-[15px] text-[#666666]">{s.title}</p>
-              <div className="mt-4 flex items-center justify-between">
-                <p className="text-[34px] font-bold leading-none text-[#181B21]">{s.value}</p>
-                <span className={`flex h-11 w-11 items-center justify-center rounded-lg ${s.iconBox}`}>
-                  <Icon className="h-5 w-5" strokeWidth={1.75} />
-                </span>
-              </div>
-              <p className={`mt-3 flex items-center gap-2 text-[15px] ${s.noteColor}`}>
-                <span className={`h-2 w-2 rounded-full ${s.dot}`} />
-                {s.note}
-              </p>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Tabel */}
-      <section className="mt-8 overflow-hidden rounded-2xl border border-[#E8E9ED] bg-white">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1000px] text-left text-[15px]">
-            <thead>
-              <tr className="border-b border-[#E8E9ED] bg-[#EEF3FE]/50 text-[#181B21]">
-                <th className="px-8 py-5 font-bold">SISWA</th>
-                <th className="px-4 py-5 font-bold">NIS</th>
-                <th className="px-4 py-5 font-bold">KELAS</th>
-                <th className="px-4 py-5 font-bold">JURUSAN</th>
-                <th className="px-4 py-5 text-center font-bold">STATUS AKUN</th>
-                <th className="px-4 py-5 text-center font-bold">KELENGKAPAN AKUN</th>
-                <th className="px-8 py-5 text-center font-bold">AKSI</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tampil.map((s) => (
-                <tr key={s.id} className="border-b border-[#E8E9ED] last:border-b-0">
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-4">
-                      <span className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[#DCE6FD] text-[#2E62EA]">
-                        <ImageIcon className="h-6 w-6" strokeWidth={1.75} />
-                      </span>
-                      <div className="leading-snug">
-                        <p className="font-bold text-[#181B21]">{s.nama}</p>
-                        <p className="text-[14px] text-[#666666]">{s.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-5 text-[#181B21]">{s.nis}</td>
-                  <td className="px-4 py-5 text-[#181B21]">{s.kelas}</td>
-                  <td className="px-4 py-5 text-[#666666]">{s.jurusan}</td>
-                  <td className="px-4 py-5 text-center">
-                    <span
-                      className={`inline-block rounded-md border px-4 py-1.5 font-bold ${
-                        s.akunAktif
-                          ? "border-green-300 bg-green-50 text-green-700"
-                          : "border-[#E8E9ED] bg-[#F6F7F8] text-[#666666]"
-                      }`}
-                    >
-                      {s.akunAktif ? "Aktif" : "Nonaktif"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-5 text-center">
-                    <span
-                      className={`inline-block whitespace-nowrap rounded-md border px-4 py-1.5 font-bold ${
-                        s.profilLengkap
-                          ? "border-green-300 bg-green-50 text-green-700"
-                          : "border-amber-300 bg-amber-50 text-amber-700"
-                      }`}
-                    >
-                      {s.profilLengkap ? "Lengkap" : "Belum Lengkap"}
-                    </span>
-                  </td>
-                  <td className="px-8 py-5 text-center">
-                    <Link
-                      href={`/siswa/${s.id}`}
-                      className="whitespace-nowrap font-bold text-[#2E62EA] hover:underline"
-                    >
-                      Lihat Detail
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* 4 kartu */}
+        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {stats.map((s) => {
+            const Icon = s.icon;
+            return (
+              <motion.div
+                key={s.title}
+                variants={naik}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                className="group rounded-2xl border border-[#E8E9ED] bg-white px-6 py-5 shadow-sm transition-[box-shadow,border-color] duration-300 hover:border-[#6F94EE] hover:shadow-lg"
+              >
+                <p className="text-[15px] text-[#666666]">{s.title}</p>
+                <div className="mt-4 flex items-center justify-between">
+                  <p className="text-[34px] font-bold leading-none text-[#181B21]">
+                    <AngkaNaik nilai={s.value} />
+                  </p>
+                  <span
+                    className={`flex h-11 w-11 items-center justify-center rounded-lg transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110 ${s.iconBox}`}
+                  >
+                    <Icon className="h-5 w-5" strokeWidth={1.75} />
+                  </span>
+                </div>
+                <p className={`mt-3 flex items-center gap-2 text-[15px] ${s.noteColor}`}>
+                  <span className={`h-2 w-2 rounded-full ${s.dot}`} />
+                  {s.note}
+                </p>
+              </motion.div>
+            );
+          })}
         </div>
+
+        {/* Tabel */}
+        <motion.section
+          variants={naik}
+          className="mt-8 overflow-hidden rounded-2xl border border-[#E8E9ED] bg-white"
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1000px] text-left text-[15px]">
+              <thead>
+                <tr className="border-b border-[#E8E9ED] bg-[#EEF3FE]/50 text-[#181B21]">
+                  <th className="px-8 py-5 font-bold">SISWA</th>
+                  <th className="px-4 py-5 font-bold">NIS</th>
+                  <th className="px-4 py-5 font-bold">KELAS</th>
+                  <th className="px-4 py-5 font-bold">JURUSAN</th>
+                  <th className="px-4 py-5 text-center font-bold">STATUS AKUN</th>
+                  <th className="px-4 py-5 text-center font-bold">KELENGKAPAN AKUN</th>
+                  <th className="px-8 py-5 text-center font-bold">AKSI</th>
+                </tr>
+              </thead>
+              {/* key={halaman}: baris muncul ulang dengan animasi setiap pindah halaman */}
+              <motion.tbody key={halaman} variants={wadahBaris} initial="tersembunyi" animate="tampil">
+                {tampil.map((s) => (
+                  <motion.tr
+                    key={s.id}
+                    variants={baris}
+                    className="group border-b border-[#E8E9ED] transition-colors duration-200 last:border-b-0 hover:bg-[#EEF3FE]/60"
+                  >
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-4">
+                        <span className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[#DCE6FD] text-[#2E62EA] transition-transform duration-300 group-hover:scale-110">
+                          <ImageIcon className="h-6 w-6" strokeWidth={1.75} />
+                        </span>
+                        <div className="leading-snug">
+                          <p className="font-bold text-[#181B21]">{s.nama}</p>
+                          <p className="text-[14px] text-[#666666]">{s.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-5 text-[#181B21]">{s.nis}</td>
+                    <td className="px-4 py-5 text-[#181B21]">{s.kelas}</td>
+                    <td className="px-4 py-5 text-[#666666]">{s.jurusan}</td>
+                    <td className="px-4 py-5 text-center">
+                      <span
+                        className={`inline-block rounded-md border px-4 py-1.5 font-bold ${
+                          s.akunAktif
+                            ? "border-green-300 bg-green-50 text-green-700"
+                            : "border-[#E8E9ED] bg-[#F6F7F8] text-[#666666]"
+                        }`}
+                      >
+                        {s.akunAktif ? "Aktif" : "Nonaktif"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-5 text-center">
+                      <span
+                        className={`inline-block whitespace-nowrap rounded-md border px-4 py-1.5 font-bold ${
+                          s.profilLengkap
+                            ? "border-green-300 bg-green-50 text-green-700"
+                            : "border-amber-300 bg-amber-50 text-amber-700"
+                        }`}
+                      >
+                        {s.profilLengkap ? "Lengkap" : "Belum Lengkap"}
+                      </span>
+                    </td>
+                    <td className="px-8 py-5 text-center">
+                      <Link
+                        href={`/siswa/${s.id}`}
+                        className="relative inline-block whitespace-nowrap font-bold text-[#2E62EA] after:absolute after:-bottom-0.5 after:left-0 after:h-0.5 after:w-0 after:bg-[#2E62EA] after:transition-all after:duration-300 hover:after:w-full"
+                      >
+                        Lihat Detail
+                      </Link>
+                    </td>
+                  </motion.tr>
+                ))}
+              </motion.tbody>
+            </table>
+          </div>
 
         {/* Pagination */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[#E8E9ED] px-8 py-5">
@@ -415,13 +500,14 @@ export default function SiswaPage() {
           </p>
 
           <div className="flex items-center gap-3">
-            <button
+            <motion.button
+              whileTap={{ scale: 0.94 }}
               onClick={() => setHalaman((h) => Math.max(1, h - 1))}
               disabled={halaman === 1}
-              className="flex h-11 items-center gap-2 rounded-lg border border-[#E8E9ED] px-5 text-[15px] font-medium text-[#181B21] hover:bg-[#EEF3FE] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-11 items-center gap-2 rounded-lg border border-[#E8E9ED] px-5 text-[15px] font-medium text-[#181B21] transition-colors hover:bg-[#EEF3FE] disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ArrowLeft className="h-4 w-4" /> Previous
-            </button>
+            </motion.button>
 
             {buatDaftarHalaman(halaman, totalHalaman).map((h, i) =>
               h === "..." ? (
@@ -429,30 +515,33 @@ export default function SiswaPage() {
                   •••
                 </span>
               ) : (
-                <button
+                <motion.button
                   key={h}
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => setHalaman(h)}
-                  className={`h-11 w-11 rounded-lg border text-[15px] font-medium ${
+                  className={`h-11 w-11 rounded-lg border text-[15px] font-medium transition-colors ${
                     h === halaman
                       ? "border-[#2E62EA] bg-[#2E62EA] text-white"
                       : "border-[#E8E9ED] text-[#181B21] hover:bg-[#EEF3FE]"
                   }`}
                 >
                   {h}
-                </button>
+                </motion.button>
               )
             )}
 
-            <button
+            <motion.button
+              whileTap={{ scale: 0.94 }}
               onClick={() => setHalaman((h) => Math.min(totalHalaman, h + 1))}
               disabled={halaman === totalHalaman}
-              className="flex h-11 items-center gap-2 rounded-lg border border-[#E8E9ED] px-5 text-[15px] font-medium text-[#181B21] hover:bg-[#EEF3FE] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-11 items-center gap-2 rounded-lg border border-[#E8E9ED] px-5 text-[15px] font-medium text-[#181B21] transition-colors hover:bg-[#EEF3FE] disabled:cursor-not-allowed disabled:opacity-50"
             >
               Next <ArrowRight className="h-4 w-4" />
-            </button>
+            </motion.button>
           </div>
         </div>
-      </section>
+        </motion.section>
+      </motion.div>
     </AdminShell>
   );
 }

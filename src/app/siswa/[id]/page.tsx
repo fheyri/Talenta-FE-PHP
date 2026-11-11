@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
+import { motion, MotionConfig, type Variants } from "framer-motion";
 import {
   LayoutGrid,
   Briefcase,
   Building2,
-  ClipboardList,
   Users,
   GraduationCap,
   BarChart3,
@@ -54,7 +54,7 @@ const mainMenu: MenuItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutGrid },
   { label: "Lowongan", href: "/lowongan", icon: Briefcase, badge: "99+" },
   { label: "Perusahaan", href: "/perusahaan", icon: Building2 },
-  { label: "Psikotes", href: "/psikotes", icon: ClipboardList },
+  { label: "Tes Psikotes", href: "/psikotes", icon: Brain },
   { label: "Siswa", href: "/siswa", icon: Users },
   { label: "Alumni", href: "/alumni", icon: GraduationCap },
   { label: "Monitoring Karier", href: "/monitoring", icon: BarChart3 },
@@ -71,11 +71,14 @@ function NavItem({ item, active }: { item: MenuItem; active: boolean }) {
   return (
     <Link
       href={item.href}
-      className={`flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium transition-colors ${
+      className={`group flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium transition-all duration-200 hover:translate-x-1 ${
         active ? "bg-[#DCE6FD] text-[#2E62EA]" : "text-[#181B21] hover:bg-[#DCE6FD]/60"
       }`}
     >
-      <Icon className={`h-5 w-5 ${active ? "text-[#2E62EA]" : "text-[#666666]"}`} strokeWidth={1.75} />
+      <Icon
+        className={`h-5 w-5 transition-transform duration-200 group-hover:scale-110 ${active ? "text-[#2E62EA]" : "text-[#666666]"}`}
+        strokeWidth={1.75}
+      />
       <span className="flex-1">{item.label}</span>
       {item.badge && (
         <span className="rounded-full bg-[#DCE6FD] px-2 py-0.5 text-xs font-semibold text-[#2E62EA]">
@@ -128,7 +131,7 @@ function Sidebar() {
           FA
         </div>
         <div className="flex-1 leading-tight">
-          <p className="font-bold text-[#181B21]">Fachry Achmad</p>
+          <p className="font-bold text-[#181B21]">Fachry Ahmad</p>
           <p className="text-sm text-[#666666]">SMKN 1 Cibinong</p>
         </div>
         <button aria-label="Keluar" className="text-[#666666] hover:text-[#181B21]">
@@ -165,19 +168,31 @@ function Topbar() {
 
       <Link
         href="/lowongan/tambah"
-        className="flex h-[52px] items-center gap-3 rounded-lg bg-[#2E62EA] px-7 text-[15px] font-semibold text-white transition-colors hover:bg-[#4276E8]"
+        className="flex h-[52px] items-center gap-3 rounded-lg bg-[#2E62EA] px-7 text-[15px] font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#4276E8] hover:shadow-md active:scale-[0.98]"
       >
         <Plus className="h-5 w-5" strokeWidth={2.25} />
         Tambah Lowongan
       </Link>
 
-      <button
+      <motion.button
         aria-label="Notifikasi"
-        className="relative flex h-[52px] w-[62px] items-center justify-center rounded-lg border border-[#E8E9ED] bg-white text-[#181B21] hover:bg-[#EEF3FE]"
+        initial="diam"
+        whileHover="goyang"
+        whileTap={{ scale: 0.95 }}
+        className="relative flex h-[52px] w-[62px] items-center justify-center rounded-lg border border-[#E8E9ED] bg-white text-[#181B21] transition-colors hover:bg-[#EEF3FE]"
       >
-        <Bell className="h-6 w-6" strokeWidth={1.75} />
+        <motion.span
+          className="inline-flex origin-top"
+          variants={{
+            diam: { rotate: 0 },
+            goyang: { rotate: [0, -18, 14, -10, 6, 0], transition: { duration: 0.6 } },
+          }}
+        >
+          <Bell className="h-6 w-6" strokeWidth={1.75} />
+        </motion.span>
+        <span className="absolute right-[18px] top-[13px] h-2.5 w-2.5 animate-ping rounded-full bg-red-400 opacity-75" />
         <span className="absolute right-[18px] top-[13px] h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
-      </button>
+      </motion.button>
 
       <div className="flex h-[52px] min-w-[240px] items-center gap-3 rounded-lg border border-[#E8E9ED] bg-white px-5 text-[15px] text-[#666666]">
         <Calendar className="h-5 w-5" strokeWidth={1.75} />
@@ -189,7 +204,7 @@ function Topbar() {
           FA
         </div>
         <div className="leading-tight">
-          <p className="text-xl font-bold text-[#181B21]">Fachry Achmad</p>
+          <p className="text-xl font-bold text-[#181B21]">Fachry Ahmad</p>
           <span className="mt-1 inline-block rounded-full bg-[#DCE6FD] px-3 py-0.5 text-sm text-[#2E62EA]">
             Super Admin
           </span>
@@ -201,15 +216,46 @@ function Topbar() {
 
 function AdminShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F6F7F8] font-sans text-[#181B21]">
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
-        <main className="flex-1 overflow-y-auto px-10 py-10">{children}</main>
+    <MotionConfig reducedMotion="user">
+      <div className="flex h-screen overflow-hidden bg-[#F6F7F8] font-sans text-[#181B21]">
+        <Sidebar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Topbar />
+          <main className="flex-1 overflow-y-auto px-10 py-10">{children}</main>
+        </div>
       </div>
-    </div>
+    </MotionConfig>
   );
 }
+
+/* ============================ ANIMASI ============================ */
+// Memakai framer-motion (sudah terpasang di project, dipakai juga di halaman login).
+// Otomatis menyesuaikan dengan pengaturan "kurangi animasi" di perangkat (lihat MotionConfig di AdminShell).
+
+const easeHalus: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
+// Kontainer: anak-anaknya muncul satu per satu
+const wadah: Variants = {
+  tersembunyi: {},
+  tampil: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+};
+
+// Elemen muncul dari bawah sambil memudar masuk
+const naik: Variants = {
+  tersembunyi: { opacity: 0, y: 18 },
+  tampil: { opacity: 1, y: 0, transition: { duration: 0.5, ease: easeHalus } },
+};
+
+// Untuk baris tabel / daftar
+const wadahBaris: Variants = {
+  tersembunyi: {},
+  tampil: { transition: { staggerChildren: 0.045, delayChildren: 0.15 } },
+};
+
+const baris: Variants = {
+  tersembunyi: { opacity: 0, x: -12 },
+  tampil: { opacity: 1, x: 0, transition: { duration: 0.35, ease: easeHalus } },
+};
 
 /* ============================ DATA DUMMY ============================ */
 // Nanti ganti dengan data dari API backend berdasarkan `id` di URL.
@@ -341,195 +387,208 @@ export default function DetailSiswaPage() {
 
   return (
     <AdminShell>
-      <Link
-        href="/siswa"
-        className="inline-flex items-center gap-3 text-[15px] font-medium text-[#2E62EA] hover:underline"
-      >
-        <ArrowLeft className="h-5 w-5" />
-        Kembali ke Siswa
-      </Link>
+      <motion.div variants={wadah} initial="tersembunyi" animate="tampil">
+        <motion.div variants={naik}>
+          <Link
+            href="/siswa"
+            className="inline-flex items-center gap-3 text-[15px] font-medium text-[#2E62EA] hover:underline"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            Kembali ke Siswa
+          </Link>
 
-      <h1 className="mt-6 text-[34px] font-bold text-[#181B21]">Detail Siswa</h1>
-      <p className="mt-1 text-[15px] text-[#666666]">
-        Informasi lengkap mengenai data siswa, kompetensi, sertifikat, dan pengalaman proyek/PKL.
-      </p>
-
-      {/* Kartu identitas */}
-      <section className="mt-7 flex items-center gap-7 rounded-2xl border border-[#E8E9ED] bg-white px-8 py-7">
-        <div className="relative shrink-0">
-          <div className="flex h-[96px] w-[96px] items-center justify-center rounded-xl border border-[#DCE6FD] bg-[#DCE6FD]/60 text-[#2E62EA]">
-            <ImageIcon className="h-10 w-10" strokeWidth={1.5} />
-          </div>
-          <span className="absolute -bottom-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-green-700 text-white ring-2 ring-white">
-            <Check className="h-3.5 w-3.5" strokeWidth={3} />
-          </span>
-        </div>
-
-        <div>
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-[30px] font-bold leading-tight text-[#181B21]">{d.nama}</h2>
-            <span
-              className={`rounded-md border px-3 py-1 text-[14px] font-medium ${
-                d.akunAktif
-                  ? "border-green-300 bg-green-50 text-green-700"
-                  : "border-[#E8E9ED] bg-[#F6F7F8] text-[#666666]"
-              }`}
-            >
-              {d.akunAktif ? "Aktif" : "Nonaktif"}
-            </span>
-          </div>
-          <p className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-1 text-[16px] text-[#181B21]">
-            <span>
-              <span className="text-[#666666]">NIS : </span>
-              {d.nis}
-            </span>
-            <span>
-              <span className="text-[#666666]">Kelas : </span>
-              {d.kelas}
-            </span>
-            <span>{d.email}</span>
+          <h1 className="mt-6 text-[34px] font-bold text-[#181B21]">Detail Siswa</h1>
+          <p className="mt-1 text-[15px] text-[#666666]">
+            Informasi lengkap mengenai data siswa, kompetensi, sertifikat, dan pengalaman proyek/PKL.
           </p>
-        </div>
-      </section>
+        </motion.div>
 
-      <div className="mt-6 grid grid-cols-1 items-start gap-6 xl:grid-cols-2">
-        {/* ===== Kolom kiri ===== */}
-        <div className="space-y-6">
-          {/* Informasi Siswa */}
-          <section className="rounded-2xl border border-[#E8E9ED] bg-white p-7">
-            <KartuJudul icon={CircleUser} judul="Informasi Siswa" />
-
-            <div className="mt-6 grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
-              <Data label="Nama Lengkap" value={d.nama} />
-              <Data label="Nomor Induk Siswa ( NIS )" value={d.nis} />
-              <Data label="Email Siswa" value={d.email} />
-              <Data label="No Whatsapp / Telp" value={d.whatsapp} />
-              <Data label="Sekolah Asal" value={d.sekolah} />
-              <Data label="Kelas" value={d.kelas} />
-              <Data label="Keahlian Program" value={d.keahlianProgram} className="sm:col-span-2" />
+        {/* Kartu identitas */}
+        <motion.section variants={naik} className="mt-7 flex items-center gap-7 rounded-2xl border border-[#E8E9ED] bg-white px-8 py-7 transition-shadow duration-300 hover:shadow-md">
+          <div className="relative shrink-0">
+            <div className="flex h-[96px] w-[96px] items-center justify-center rounded-xl border border-[#DCE6FD] bg-[#DCE6FD]/60 text-[#2E62EA]">
+              <ImageIcon className="h-10 w-10" strokeWidth={1.5} />
             </div>
+            <span className="absolute -bottom-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-green-700 text-white ring-2 ring-white">
+              <Check className="h-3.5 w-3.5" strokeWidth={3} />
+            </span>
+          </div>
 
-            <div className="mt-8 border-t border-[#E8E9ED] pt-6">
-              <Data label="Alamat Domisili" value={d.alamat} />
-
-              <p className="mt-6 text-[14px] uppercase text-[#181B21]">Deskripsi / Bio</p>
-              <p className="mt-2 rounded-lg border border-[#DCE6FD] bg-[#EEF3FE] px-4 py-3 text-[15px] font-bold leading-snug text-[#181B21]">
-                {d.bio}
-              </p>
+          <div>
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="text-[30px] font-bold leading-tight text-[#181B21]">{d.nama}</h2>
+              <span
+                className={`rounded-md border px-3 py-1 text-[14px] font-medium ${
+                  d.akunAktif
+                    ? "border-green-300 bg-green-50 text-green-700"
+                    : "border-[#E8E9ED] bg-[#F6F7F8] text-[#666666]"
+                }`}
+              >
+                {d.akunAktif ? "Aktif" : "Nonaktif"}
+              </span>
             </div>
-          </section>
+            <p className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-1 text-[16px] text-[#181B21]">
+              <span>
+                <span className="text-[#666666]">NIS : </span>
+                {d.nis}
+              </span>
+              <span>
+                <span className="text-[#666666]">Kelas : </span>
+                {d.kelas}
+              </span>
+              <span>{d.email}</span>
+            </p>
+          </div>
+        </motion.section>
 
-          {/* Project & PKL */}
-          <section className="rounded-2xl border border-[#E8E9ED] bg-white p-7">
-            <KartuJudul icon={SquareKanban} judul="Project & PKL" keterangan="Pengalaman" />
+        <div className="mt-6 grid grid-cols-1 items-start gap-6 xl:grid-cols-2">
+          {/* ===== Kolom kiri ===== */}
+          <div className="space-y-6">
+            {/* Informasi Siswa */}
+            <motion.section variants={naik} className="rounded-2xl border border-[#E8E9ED] bg-white p-7 transition-shadow duration-300 hover:shadow-md">
+              <KartuJudul icon={CircleUser} judul="Informasi Siswa" />
 
-            <div className="mt-6 space-y-5">
-              {d.pengalaman.map((p) => (
-                <div
-                  key={p.id}
-                  className="rounded-xl border border-[#E8E9ED] bg-[#EEF3FE]/50 px-5 py-4"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className="rounded-full bg-[#DCE6FD] px-3 py-1 text-[13px] font-semibold text-[#2E62EA]">
-                        {p.jenis}
-                      </span>
-                      <div className="leading-snug">
-                        <p className="font-bold text-[#181B21]">{p.judul}</p>
-                        <p className="text-[15px] text-[#181B21]">{p.perusahaan}</p>
-                      </div>
-                    </div>
-                    <span className="flex items-center gap-2.5 rounded-full border border-[#E8E9ED] bg-white px-4 py-2 text-[14px] text-[#181B21]">
-                      <Calendar className="h-4 w-4 text-[#666666]" strokeWidth={1.75} />
-                      {p.periode}
-                    </span>
-                  </div>
+              <div className="mt-6 grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
+                <Data label="Nama Lengkap" value={d.nama} />
+                <Data label="Nomor Induk Siswa ( NIS )" value={d.nis} />
+                <Data label="Email Siswa" value={d.email} />
+                <Data label="No Whatsapp / Telp" value={d.whatsapp} />
+                <Data label="Sekolah Asal" value={d.sekolah} />
+                <Data label="Kelas" value={d.kelas} />
+                <Data label="Keahlian Program" value={d.keahlianProgram} className="sm:col-span-2" />
+              </div>
 
-                  <p className="mt-4 border-t border-[#E8E9ED] pt-4 text-[15px] leading-relaxed text-[#181B21]">
-                    {p.deskripsi}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-        </div>
+              <div className="mt-8 border-t border-[#E8E9ED] pt-6">
+                <Data label="Alamat Domisili" value={d.alamat} />
 
-        {/* ===== Kolom kanan ===== */}
-        <div className="space-y-6">
-          {/* Kompetensi */}
-          <section className="rounded-2xl border border-[#E8E9ED] bg-white p-7">
-            <KartuJudul icon={Brain} judul="Kompetensi" keterangan={`${d.kompetensi.length} keahlian`} />
-            <ul className="mt-6 space-y-5">
-              {d.kompetensi.map((k) => (
-                <li key={k} className="text-[19px] font-bold text-[#181B21]">
-                  {k}
-                </li>
-              ))}
-            </ul>
-          </section>
+                <p className="mt-6 text-[14px] uppercase text-[#181B21]">Deskripsi / Bio</p>
+                <p className="mt-2 rounded-lg border border-[#DCE6FD] bg-[#EEF3FE] px-4 py-3 text-[15px] font-bold leading-snug text-[#181B21]">
+                  {d.bio}
+                </p>
+              </div>
+            </motion.section>
 
-          {/* Sertifikat */}
-          <section className="rounded-2xl border border-[#E8E9ED] bg-white p-7">
-            <KartuJudul icon={Award} judul="Sertifikat" keterangan={`${d.sertifikat.length} Dokumen`} />
-            <div className="mt-6 space-y-5">
-              {d.sertifikat.map((s) => (
-                <div
-                  key={s.id}
-                  className="flex items-center gap-4 rounded-xl border border-[#DCE6FD] bg-[#EEF3FE] px-4 py-4"
-                >
-                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-[#E8E9ED] bg-white text-[#181B21]">
-                    <FileText className="h-6 w-6" strokeWidth={1.5} />
-                  </span>
-                  <div className="min-w-0 flex-1 leading-snug">
-                    <p className="font-bold text-[#181B21]">{s.judul}</p>
-                    <p className="text-[14px] text-[#181B21]">
-                      {s.penerbit} • {s.tahun}
-                    </p>
-                    <a href={s.url} className="text-[14px] text-[#2E62EA] hover:underline">
-                      {s.namaFile}
-                    </a>
-                  </div>
-                  <a
-                    href={s.url}
-                    download
-                    aria-label={`Unduh ${s.namaFile}`}
-                    className="rounded-md p-2 text-[#181B21] hover:bg-white"
+            {/* Project & PKL */}
+            <motion.section variants={naik} className="rounded-2xl border border-[#E8E9ED] bg-white p-7 transition-shadow duration-300 hover:shadow-md">
+              <KartuJudul icon={SquareKanban} judul="Project & PKL" keterangan="Pengalaman" />
+
+              <motion.div variants={wadahBaris} className="mt-6 space-y-5">
+                {d.pengalaman.map((p) => (
+                  <motion.div
+                    key={p.id}
+                    variants={baris}
+                    whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                    className="rounded-xl border border-[#E8E9ED] bg-[#EEF3FE]/50 px-5 py-4 transition-shadow duration-300 hover:shadow-md"
                   >
-                    <Download className="h-5 w-5" />
-                  </a>
-                </div>
-              ))}
-            </div>
-          </section>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <span className="rounded-full bg-[#DCE6FD] px-3 py-1 text-[13px] font-semibold text-[#2E62EA]">
+                          {p.jenis}
+                        </span>
+                        <div className="leading-snug">
+                          <p className="font-bold text-[#181B21]">{p.judul}</p>
+                          <p className="text-[15px] text-[#181B21]">{p.perusahaan}</p>
+                        </div>
+                      </div>
+                      <span className="flex items-center gap-2.5 rounded-full border border-[#E8E9ED] bg-white px-4 py-2 text-[14px] text-[#181B21]">
+                        <Calendar className="h-4 w-4 text-[#666666]" strokeWidth={1.75} />
+                        {p.periode}
+                      </span>
+                    </div>
 
-          {/* Informasi Akun */}
-          <section className="rounded-2xl border border-[#E8E9ED] bg-white p-7">
-            <KartuJudul icon={Info} judul="Informasi Akun" keterangan="Status" />
-            <dl className="mt-6 space-y-5 text-[18px] text-[#181B21]">
-              <div className="flex items-center justify-between gap-4">
-                <dt>Status akun</dt>
-                <dd>
-                  <Pill aktif={d.akunAktif} teks={d.akunAktif ? "Aktif" : "Nonaktif"} />
-                </dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt>Status profile</dt>
-                <dd>
-                  <Pill aktif={d.profilLengkap} teks={d.profilLengkap ? "Lengkap" : "Belum Lengkap"} />
-                </dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt>Akun Dibuat</dt>
-                <dd>{d.akunDibuat}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt>Terakhir di perbarui</dt>
-                <dd>{d.terakhirDiperbarui}</dd>
-              </div>
-            </dl>
-          </section>
+                    <p className="mt-4 border-t border-[#E8E9ED] pt-4 text-[15px] leading-relaxed text-[#181B21]">
+                      {p.deskripsi}
+                    </p>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </motion.section>
+          </div>
+
+          {/* ===== Kolom kanan ===== */}
+          <div className="space-y-6">
+            {/* Kompetensi */}
+            <motion.section variants={naik} className="rounded-2xl border border-[#E8E9ED] bg-white p-7 transition-shadow duration-300 hover:shadow-md">
+              <KartuJudul icon={Brain} judul="Kompetensi" keterangan={`${d.kompetensi.length} keahlian`} />
+              <motion.ul variants={wadahBaris} className="mt-6 space-y-5">
+                {d.kompetensi.map((k) => (
+                  <motion.li
+                    key={k}
+                    variants={baris}
+                    whileHover={{ x: 6, transition: { duration: 0.2 } }}
+                    className="cursor-default text-[19px] font-bold text-[#181B21] transition-colors hover:text-[#2E62EA]"
+                  >
+                    {k}
+                  </motion.li>
+                ))}
+              </motion.ul>
+            </motion.section>
+
+            {/* Sertifikat */}
+            <motion.section variants={naik} className="rounded-2xl border border-[#E8E9ED] bg-white p-7 transition-shadow duration-300 hover:shadow-md">
+              <KartuJudul icon={Award} judul="Sertifikat" keterangan={`${d.sertifikat.length} Dokumen`} />
+              <motion.div variants={wadahBaris} className="mt-6 space-y-5">
+                {d.sertifikat.map((s) => (
+                  <motion.div
+                    key={s.id}
+                    variants={baris}
+                    whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                    className="flex items-center gap-4 rounded-xl border border-[#DCE6FD] bg-[#EEF3FE] px-4 py-4 transition-shadow duration-300 hover:shadow-md"
+                  >
+                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-[#E8E9ED] bg-white text-[#181B21]">
+                      <FileText className="h-6 w-6" strokeWidth={1.5} />
+                    </span>
+                    <div className="min-w-0 flex-1 leading-snug">
+                      <p className="font-bold text-[#181B21]">{s.judul}</p>
+                      <p className="text-[14px] text-[#181B21]">
+                        {s.penerbit} • {s.tahun}
+                      </p>
+                      <a href={s.url} className="text-[14px] text-[#2E62EA] hover:underline">
+                        {s.namaFile}
+                      </a>
+                    </div>
+                    <a
+                      href={s.url}
+                      download
+                      aria-label={`Unduh ${s.namaFile}`}
+                      className="rounded-md p-2 text-[#181B21] hover:bg-white"
+                    >
+                      <Download className="h-5 w-5" />
+                    </a>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </motion.section>
+
+            {/* Informasi Akun */}
+            <motion.section variants={naik} className="rounded-2xl border border-[#E8E9ED] bg-white p-7 transition-shadow duration-300 hover:shadow-md">
+              <KartuJudul icon={Info} judul="Informasi Akun" keterangan="Status" />
+              <dl className="mt-6 space-y-5 text-[18px] text-[#181B21]">
+                <div className="flex items-center justify-between gap-4">
+                  <dt>Status akun</dt>
+                  <dd>
+                    <Pill aktif={d.akunAktif} teks={d.akunAktif ? "Aktif" : "Nonaktif"} />
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <dt>Status profile</dt>
+                  <dd>
+                    <Pill aktif={d.profilLengkap} teks={d.profilLengkap ? "Lengkap" : "Belum Lengkap"} />
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <dt>Akun Dibuat</dt>
+                  <dd>{d.akunDibuat}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <dt>Terakhir di perbarui</dt>
+                  <dd>{d.terakhirDiperbarui}</dd>
+                </div>
+              </dl>
+            </motion.section>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </AdminShell>
   );
 }
