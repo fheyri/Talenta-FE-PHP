@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutGrid,
   Briefcase,
@@ -21,6 +23,7 @@ import {
   ArrowUp,
   ArrowRight,
   ChevronDown,
+  ClipboardList,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -37,24 +40,203 @@ import type { LucideIcon } from "lucide-react";
   #E8E9ED  Border dan divider
 */
 
-/* ============================ DATA DUMMY ============================ */
-// Nanti ganti dengan data dari API backend.
+/* ============================ LAYOUT: SIDEBAR + TOPBAR ============================ */
 
-const mainMenu: { label: string; href: string; icon: LucideIcon; badge?: string }[] = [
+type MenuItem = { label: string; href: string; icon: LucideIcon; badge?: string };
+
+const mainMenu: MenuItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutGrid },
   { label: "Lowongan", href: "/lowongan", icon: Briefcase, badge: "99+" },
   { label: "Perusahaan", href: "/perusahaan", icon: Building2 },
-  { label: "Kategori & Tag", href: "/kategori", icon: Tag },
+  { label: "Psikotes", href: "/psikotes", icon: ClipboardList },
   { label: "Siswa", href: "/siswa", icon: Users },
   { label: "Alumni", href: "/alumni", icon: GraduationCap },
   { label: "Monitoring Karier", href: "/monitoring", icon: BarChart3 },
   { label: "Analytics", href: "/analytics", icon: Activity },
 ];
 
-const systemMenu: { label: string; href: string; icon: LucideIcon }[] = [
+const systemMenu: MenuItem[] = [
   { label: "Manajemen Admin", href: "/admin", icon: Lock },
   { label: "Pengaturan", href: "/pengaturan", icon: Settings },
 ];
+
+function NavItem({ item, active }: { item: MenuItem; active: boolean }) {
+  const Icon = item.icon;
+  return (
+    <Link
+      href={item.href}
+      className={`flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium transition-colors ${
+        active ? "bg-[#DCE6FD] text-[#2E62EA]" : "text-[#181B21] hover:bg-[#DCE6FD]/60"
+      }`}
+    >
+      <Icon className={`h-5 w-5 ${active ? "text-[#2E62EA]" : "text-[#666666]"}`} strokeWidth={1.75} />
+      <span className="flex-1">{item.label}</span>
+      {item.badge && (
+        <span className="rounded-full bg-[#DCE6FD] px-2 py-0.5 text-xs font-semibold text-[#2E62EA]">
+          {item.badge}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+function Sidebar() {
+  const pathname = usePathname();
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+
+  return (
+    <aside className="flex h-screen w-[260px] shrink-0 flex-col border-r border-[#E8E9ED] bg-[#EEF3FE]">
+      <div className="flex h-[81px] items-center gap-3 border-b border-[#E8E9ED] px-7">
+        <Image
+          src="/images/logo-talenta.png"
+          alt="Logo Talenta"
+          width={44}
+          height={44}
+          className="h-11 w-auto object-contain"
+          priority
+        />
+        <div className="leading-tight">
+          <p className="text-xl font-bold text-[#181B21]">Talenta</p>
+          <p className="text-sm text-[#666666]">SMKN 1 Cibinong</p>
+        </div>
+      </div>
+
+      <nav className="flex-1 overflow-y-auto px-2 py-5">
+        <p className="mb-3 px-5 text-[15px] text-[#666666]">Main menu</p>
+        <div className="space-y-1">
+          {mainMenu.map((m) => (
+            <NavItem key={m.label} item={m} active={isActive(m.href)} />
+          ))}
+        </div>
+
+        <p className="mb-3 mt-6 px-5 text-[15px] text-[#666666]">System</p>
+        <div className="space-y-1">
+          {systemMenu.map((m) => (
+            <NavItem key={m.label} item={m} active={isActive(m.href)} />
+          ))}
+        </div>
+      </nav>
+
+      <div className="mx-5 flex items-center gap-3 border-t border-[#E8E9ED] py-5">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#2E62EA] text-base font-bold text-white ring-2 ring-[#DCE6FD]">
+          FA
+        </div>
+        <div className="flex-1 leading-tight">
+          <p className="font-bold text-[#181B21]">Fachry Ahmad</p>
+          <p className="text-sm text-[#666666]">SMKN 1 Cibinong</p>
+        </div>
+        <button aria-label="Keluar" className="text-[#666666] hover:text-[#181B21]">
+          <LogOut className="h-5 w-5" strokeWidth={1.75} />
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+function Topbar() {
+  const [tanggal, setTanggal] = useState("");
+
+  useEffect(() => {
+    const t = new Intl.DateTimeFormat("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(new Date());
+    setTanggal(t.replace(/^(\S+)/, "$1,"));
+  }, []);
+
+  return (
+    <header className="flex h-[81px] shrink-0 items-center gap-5 border-b border-[#E8E9ED] bg-[#F6F7F8] px-8">
+      <div className="relative max-w-[590px] flex-1">
+        <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#666666]" />
+        <input
+          type="text"
+          placeholder="Cari data siswa, lowongan, atau perusahaan ....."
+          className="h-[52px] w-full rounded-lg border border-[#E8E9ED] bg-white pl-12 pr-4 text-[15px] text-[#181B21] placeholder:text-[#666666] focus:border-[#2E62EA] focus:outline-none focus:ring-2 focus:ring-[#DCE6FD]"
+        />
+      </div>
+
+      <Link
+        href="/lowongan/tambah"
+        className="flex h-[52px] items-center gap-3 rounded-lg bg-[#2E62EA] px-7 text-[15px] font-semibold text-white transition-colors hover:bg-[#4276E8]"
+      >
+        <Plus className="h-5 w-5" strokeWidth={2.25} />
+        Tambah Lowongan
+      </Link>
+
+      <button
+        aria-label="Notifikasi"
+        className="relative flex h-[52px] w-[62px] items-center justify-center rounded-lg border border-[#E8E9ED] bg-white text-[#181B21] hover:bg-[#EEF3FE]"
+      >
+        <Bell className="h-6 w-6" strokeWidth={1.75} />
+        <span className="absolute right-[18px] top-[13px] h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+      </button>
+
+      <div className="flex h-[52px] min-w-[240px] items-center gap-3 rounded-lg border border-[#E8E9ED] bg-white px-5 text-[15px] text-[#666666]">
+        <Calendar className="h-5 w-5" strokeWidth={1.75} />
+        <span>{tanggal}</span>
+      </div>
+
+      <div className="ml-auto flex items-center gap-3">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2E62EA] text-lg font-bold text-white ring-2 ring-[#DCE6FD]">
+          FA
+        </div>
+        <div className="leading-tight">
+          <p className="text-xl font-bold text-[#181B21]">Fachry Ahmad</p>
+          <span className="mt-1 inline-block rounded-full bg-[#DCE6FD] px-3 py-0.5 text-sm text-[#2E62EA]">
+            Super Admin
+          </span>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function AdminShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex h-screen overflow-hidden bg-[#F6F7F8] font-sans text-[#181B21]">
+      <Sidebar />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Topbar />
+        <main className="flex-1 overflow-y-auto px-10 py-10">{children}</main>
+      </div>
+    </div>
+  );
+}
+
+/* ============================ TOMBOL PILIHAN PERIODE ============================ */
+
+function Segmented({
+  options,
+  value,
+  onChange,
+}: {
+  options: string[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="flex rounded-lg border border-[#E8E9ED] bg-[#F6F7F8] p-1">
+      {options.map((opt) => (
+        <button
+          key={opt}
+          onClick={() => onChange(opt)}
+          className={`rounded-md px-5 py-2 text-[15px] font-medium transition-colors ${
+            value === opt
+              ? "bg-white text-[#2E62EA] shadow-sm"
+              : "text-[#666666] hover:text-[#181B21]"
+          }`}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ============================ DATA DUMMY ============================ */
+// Nanti ganti dengan data dari API backend.
 
 const stats: {
   title: string;
@@ -100,184 +282,6 @@ const perhatian = [
   { judul: "12 lowongan akan berakhir minggu ini", link: "Lihat Lowongan", desc: "Periksa pembaruan kuota pelamar dan tenggat waktu." },
   { judul: "18 data alumni belum memperbarui informasi karier", link: "Lihat Alumni", desc: "Form tracer study angkatan 2025 belum tuntas terisi." },
 ];
-
-/* ============================ KOMPONEN KECIL ============================ */
-
-function Segmented({
-  options,
-  value,
-  onChange,
-}: {
-  options: string[];
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="flex rounded-lg border border-[#E8E9ED] bg-[#F6F7F8] p-1">
-      {options.map((opt) => (
-        <button
-          key={opt}
-          onClick={() => onChange(opt)}
-          className={`rounded-md px-5 py-2 text-[15px] font-medium transition-colors ${
-            value === opt
-              ? "bg-white text-[#2E62EA] shadow-sm"
-              : "text-[#666666] hover:text-[#181B21]"
-          }`}
-        >
-          {opt}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function NavItem({
-  label,
-  href,
-  icon: Icon,
-  badge,
-  active,
-}: {
-  label: string;
-  href: string;
-  icon: LucideIcon;
-  badge?: string;
-  active: boolean;
-}) {
-  return (
-    <a
-      href={href}
-      className={`flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium transition-colors ${
-        active ? "bg-[#DCE6FD] text-[#2E62EA]" : "text-[#181B21] hover:bg-[#DCE6FD]/60"
-      }`}
-    >
-      <Icon className={`h-5 w-5 ${active ? "text-[#2E62EA]" : "text-[#666666]"}`} strokeWidth={1.75} />
-      <span className="flex-1">{label}</span>
-      {badge && (
-        <span className="rounded-full bg-[#DCE6FD] px-2 py-0.5 text-xs font-semibold text-[#2E62EA]">
-          {badge}
-        </span>
-      )}
-    </a>
-  );
-}
-
-/* ============================ SIDEBAR ============================ */
-
-function Sidebar() {
-  return (
-    <aside className="flex h-screen w-[260px] shrink-0 flex-col border-r border-[#E8E9ED] bg-[#EEF3FE]">
-      {/* Logo (file gambar ada di /public/logo-talenta.png) */}
-      <div className="flex h-[81px] items-center gap-3 border-b border-[#E8E9ED] px-7">
-        <Image
-          src="/images/logo-talenta.png"
-          alt="Logo Talenta"
-          width={44}
-          height={44}
-          className="h-11 w-auto object-contain"
-          priority
-        />
-        <div className="leading-tight">
-          <p className="text-xl font-bold text-[#181B21]">Talenta</p>
-          <p className="text-sm text-[#666666]">SMKN 1 Cibinong</p>
-        </div>
-      </div>
-
-      {/* Menu */}
-      <nav className="flex-1 overflow-y-auto px-2 py-5">
-        <p className="mb-3 px-5 text-[15px] text-[#666666]">Main menu</p>
-        <div className="space-y-1">
-          {mainMenu.map((m) => (
-            <NavItem key={m.label} {...m} active={m.label === "Dashboard"} />
-          ))}
-        </div>
-
-        <p className="mb-3 mt-6 px-5 text-[15px] text-[#666666]">System</p>
-        <div className="space-y-1">
-          {systemMenu.map((m) => (
-            <NavItem key={m.label} {...m} active={false} />
-          ))}
-        </div>
-      </nav>
-
-      {/* Profil bawah */}
-      <div className="mx-5 flex items-center gap-3 border-t border-[#E8E9ED] py-5">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#2E62EA] text-base font-bold text-white ring-2 ring-[#DCE6FD]">
-          DN
-        </div>
-        <div className="flex-1 leading-tight">
-          <p className="font-bold text-[#181B21]">Doni Subianto</p>
-          <p className="text-sm text-[#666666]">SMKN 1 Cibinong</p>
-        </div>
-        <button aria-label="Keluar" className="text-[#666666] hover:text-[#181B21]">
-          <LogOut className="h-5 w-5" strokeWidth={1.75} />
-        </button>
-      </div>
-    </aside>
-  );
-}
-
-/* ============================ TOPBAR ============================ */
-
-function Topbar() {
-  const [tanggal, setTanggal] = useState("");
-
-  useEffect(() => {
-    const t = new Intl.DateTimeFormat("id-ID", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }).format(new Date());
-    setTanggal(t.replace(/^(\S+)/, "$1,"));
-  }, []);
-
-  return (
-    <header className="flex h-[81px] shrink-0 items-center gap-5 border-b border-[#E8E9ED] bg-[#F6F7F8] px-8">
-      <div className="relative max-w-[590px] flex-1">
-        <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#666666]" />
-        <input
-          type="text"
-          placeholder="Cari data siswa, lowongan, atau perusahaan ....."
-          className="h-[52px] w-full rounded-lg border border-[#E8E9ED] bg-white pl-12 pr-4 text-[15px] text-[#181B21] placeholder:text-[#666666] focus:border-[#2E62EA] focus:outline-none focus:ring-2 focus:ring-[#DCE6FD]"
-        />
-      </div>
-
-      <a
-        href="/lowongan/tambah"
-        className="flex h-[52px] items-center gap-3 rounded-lg bg-[#2E62EA] px-7 text-[15px] font-semibold text-white transition-colors hover:bg-[#4276E8]"
-      >
-        <Plus className="h-5 w-5" strokeWidth={2.25} />
-        Tambah Lowongan
-      </a>
-
-      <button
-        aria-label="Notifikasi"
-        className="relative flex h-[52px] w-[62px] items-center justify-center rounded-lg border border-[#E8E9ED] bg-white text-[#181B21] hover:bg-[#EEF3FE]"
-      >
-        <Bell className="h-6 w-6" strokeWidth={1.75} />
-        <span className="absolute right-[18px] top-[13px] h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
-      </button>
-
-      <div className="flex h-[52px] min-w-[240px] items-center gap-3 rounded-lg border border-[#E8E9ED] bg-white px-5 text-[15px] text-[#666666]">
-        <Calendar className="h-5 w-5" strokeWidth={1.75} />
-        <span>{tanggal}</span>
-      </div>
-
-      <div className="ml-auto flex items-center gap-3">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2E62EA] text-lg font-bold text-white ring-2 ring-[#DCE6FD]">
-          DN
-        </div>
-        <div className="leading-tight">
-          <p className="text-xl font-bold text-[#181B21]">Doni Subianto</p>
-          <span className="mt-1 inline-block rounded-full bg-[#DCE6FD] px-3 py-0.5 text-sm text-[#2E62EA]">
-            Super Admin
-          </span>
-        </div>
-      </div>
-    </header>
-  );
-}
 
 /* ============================ KONTEN DASHBOARD ============================ */
 
@@ -476,44 +480,36 @@ export default function DashboardPage() {
   const [periode, setPeriode] = useState("Bulan ini");
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F6F7F8] font-sans text-[#181B21]">
-      <Sidebar />
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
-
-        <main className="flex-1 overflow-y-auto px-10 py-10">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-[34px] font-bold text-[#181B21]">Dasboard</h1>
-              <p className="mt-2 text-[15px] text-[#666666]">
-                Selamat datang kembali, Admin. Kelola data dan informasi BKK dengan lebih mudah.
-              </p>
-            </div>
-            <Segmented
-              options={["Bulan ini", "Bulan lalu", "Tahun 2026"]}
-              value={periode}
-              onChange={setPeriode}
-            />
-          </div>
-
-          <div className="mt-9 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-            {stats.map((s) => (
-              <StatCard key={s.title} item={s} />
-            ))}
-          </div>
-
-          <div className="mt-9 grid grid-cols-1 items-start gap-6 xl:grid-cols-[1.45fr_1fr]">
-            <OverviewChart />
-            <AlumniProgress />
-          </div>
-
-          <div className="mt-9 grid grid-cols-1 gap-6 xl:grid-cols-[1.75fr_1fr]">
-            <RecentJobs />
-            <Attention />
-          </div>
-        </main>
+    <AdminShell>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-[34px] font-bold text-[#181B21]">Dasboard</h1>
+          <p className="mt-2 text-[15px] text-[#666666]">
+            Selamat datang kembali, Admin. Kelola data dan informasi BKK dengan lebih mudah.
+          </p>
+        </div>
+        <Segmented
+          options={["Bulan ini", "Bulan lalu", "Tahun 2026"]}
+          value={periode}
+          onChange={setPeriode}
+        />
       </div>
-    </div>
+
+      <div className="mt-9 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+        {stats.map((s) => (
+          <StatCard key={s.title} item={s} />
+        ))}
+      </div>
+
+      <div className="mt-9 grid grid-cols-1 items-start gap-6 xl:grid-cols-[1.45fr_1fr]">
+        <OverviewChart />
+        <AlumniProgress />
+      </div>
+
+      <div className="mt-9 grid grid-cols-1 gap-6 xl:grid-cols-[1.75fr_1fr]">
+        <RecentJobs />
+        <Attention />
+      </div>
+    </AdminShell>
   );
 }
