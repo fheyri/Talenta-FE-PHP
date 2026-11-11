@@ -29,6 +29,8 @@ import {
   CirclePlay,
   Timer,
   Smartphone,
+  Eye,
+  Pencil,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -670,6 +672,30 @@ export default function ManagemenPsikotesPage() {
   const [cari, setCari] = useState("");
   const [terpilih, setTerpilih] = useState<Riwayat | null>(null);
 
+  // Menu titik tiga di tabel daftar tes
+  const [menu, setMenu] = useState<{ id: number; top: number; right: number } | null>(null);
+
+  // Tutup menu kalau klik di luar, scroll, ukuran layar berubah, atau tekan Esc
+  useEffect(() => {
+    if (!menu) return;
+    const tutup = () => setMenu(null);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") tutup();
+    };
+    window.addEventListener("click", tutup);
+    window.addEventListener("resize", tutup);
+    window.addEventListener("scroll", tutup, true);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("click", tutup);
+      window.removeEventListener("resize", tutup);
+      window.removeEventListener("scroll", tutup, true);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [menu]);
+
+  const menuTes = menu ? daftarTes.find((t) => t.id === menu.id) : undefined;
+
   const totalTes = daftarTes.length;
   const tesAktif = daftarTes.filter((t) => t.aktif).length;
   const tesNonaktif = totalTes - tesAktif;
@@ -789,7 +815,20 @@ export default function ManagemenPsikotesPage() {
                     <td className="px-5 py-4 text-center">
                       <button
                         aria-label={`Aksi untuk ${t.judul}`}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[#181B21] transition-all duration-200 hover:bg-[#DCE6FD] hover:text-[#2E62EA] active:scale-90"
+                        aria-haspopup="menu"
+                        aria-expanded={menu?.id === t.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const r = e.currentTarget.getBoundingClientRect();
+                          setMenu(
+                            menu?.id === t.id
+                              ? null
+                              : { id: t.id, top: r.bottom + 4, right: window.innerWidth - r.right }
+                          );
+                        }}
+                        className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-all duration-200 hover:bg-[#DCE6FD] hover:text-[#2E62EA] active:scale-90 ${
+                          menu?.id === t.id ? "bg-[#DCE6FD] text-[#2E62EA]" : "text-[#181B21]"
+                        }`}
                       >
                         <EllipsisVertical className="h-5 w-5" strokeWidth={2} />
                       </button>
@@ -939,6 +978,31 @@ export default function ManagemenPsikotesPage() {
           </section>
         </main>
       </div>
+
+      {/* Menu titik tiga */}
+      {menu && menuTes && (
+        <div
+          role="menu"
+          style={{ top: menu.top, right: menu.right }}
+          onClick={(e) => e.stopPropagation()}
+          className="anim-overlay fixed z-40 w-48 rounded-xl border border-[#E8E9ED] bg-white p-1.5 shadow-lg"
+        >
+          <Link
+            role="menuitem"
+            href={`/psikotes/${menuTes.id}`}
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium text-[#181B21] transition-colors hover:bg-[#EEF3FE] hover:text-[#2E62EA]"
+          >
+            <Eye className="h-4 w-4" /> Detail Tes
+          </Link>
+          <Link
+            role="menuitem"
+            href={`/psikotes/${menuTes.id}/edit`}
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium text-[#181B21] transition-colors hover:bg-[#EEF3FE] hover:text-[#2E62EA]"
+          >
+            <Pencil className="h-4 w-4" /> Edit Tes
+          </Link>
+        </div>
+      )}
 
       {terpilih && <DetailHasilModal data={terpilih} onClose={() => setTerpilih(null)} />}
     </div>

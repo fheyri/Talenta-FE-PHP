@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import {
   LayoutGrid,
   Briefcase,
@@ -285,6 +287,7 @@ function InfoCard({
 /* ============================ HALAMAN ============================ */
 
 export default function DetailLowonganPage() {
+  const { id } = useParams<{ id: string }>();
   const [status, setStatus] = useState<"Aktif" | "Draft">("Aktif");
   const d = lowongan;
 
@@ -352,9 +355,12 @@ export default function DetailLowonganPage() {
                 <button className="flex h-11 items-center gap-2 rounded-lg border border-[#E8E9ED] bg-white px-5 text-[14px] font-medium text-[#666666] hover:bg-[#EEF3FE]">
                   <Archive className="h-4 w-4" /> Arsipkan Lowongan
                 </button>
-                <button className="flex h-11 items-center gap-2 rounded-lg bg-[#2E62EA] px-5 text-[14px] font-semibold text-white hover:bg-[#4276E8]">
-                  <Pencil className="h-4 w-4" /> Edit Lowongan
-                </button>
+               <Link
+  href={`/lowongan/${id}/edit`}
+  className="flex h-11 items-center gap-2 rounded-lg bg-[#2E62EA] px-5 text-[14px] font-semibold text-white hover:bg-[#4276E8]"
+>
+  <Pencil className="h-4 w-4" /> Edit Lowongan
+</Link>
               </div>
             </div>
           </Card>

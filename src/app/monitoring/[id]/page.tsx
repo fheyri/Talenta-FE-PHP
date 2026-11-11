@@ -319,7 +319,7 @@ export default function DetailAlumniPage() {
             Kembali ke Siswa
           </Link>
 
-          <h1 className="mt-3 text-[30px] font-bold text-[#181B21]">Detail Siswa</h1>
+          <h1 className="mt-3 text-[30px] font-bold text-[#181B21]">Detail Alumni</h1>
           <p className="mt-1.5 text-[13px] text-[#666666]">
             Informasi lengkap mengenai data siswa, kompetensi, sertifikat, dan pengalaman proyek/PKL.
           </p>

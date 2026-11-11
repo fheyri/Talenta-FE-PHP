@@ -515,9 +515,12 @@ function JobTable({ delay }: { delay: number }) {
           >
             <Eye className="h-4 w-4" /> Detail Lowongan
           </Link>
-          <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium text-[#181B21] transition-colors hover:bg-[#EEF3FE] hover:text-[#2E62EA]">
-            <Pencil className="h-4 w-4" /> Edit Lowongan
-          </button>
+          <Link
+  href={`/lowongan/${menu.id}/edit`}
+  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium text-[#181B21] hover:bg-[#EEF3FE] hover:text-[#2E62EA]"
+>
+  <Pencil className="h-4 w-4" /> Edit Lowongan
+</Link>
           <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium text-[#666666] transition-colors hover:bg-[#EEF3FE]">
             <Archive className="h-4 w-4" /> Arsipkan Lowongan
           </button>
