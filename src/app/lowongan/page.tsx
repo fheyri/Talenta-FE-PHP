@@ -7,7 +7,7 @@ import {
   LayoutGrid,
   Briefcase,
   Building2,
-  Tag,
+  Brain,
   Users,
   GraduationCap,
   BarChart3,
@@ -32,6 +32,79 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+/* ============================ ANIMASI ============================ */
+/*
+  anim-masuk  : elemen muncul dari bawah + fade saat halaman dibuka (bergantian)
+  anim-baris  : baris tabel muncul satu per satu dari kiri
+  anim-menu   : menu titik tiga membuka dari atas (scale + fade)
+  kartu-hover : HANYA dipakai di 4 kartu statistik paling atas
+  Angka di kartu statistik juga naik dari 0 (count-up).
+*/
+const animasiCSS = `
+@keyframes masuk-naik {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes masuk-kiri {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes menu-buka {
+  from { opacity: 0; transform: translateY(-6px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.anim-masuk { animation: masuk-naik 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.anim-baris { animation: masuk-kiri 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.anim-menu  { animation: menu-buka 0.2s cubic-bezier(0.22, 1, 0.36, 1); transform-origin: top right; }
+
+.kartu-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.kartu-hover:hover {
+  transform: translateY(-6px);
+  border-color: rgba(46, 98, 234, 0.35);
+  box-shadow: 0 14px 30px -12px rgba(46, 98, 234, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-masuk, .anim-baris, .anim-menu { animation: none; }
+  .kartu-hover:hover { transform: none; }
+}
+`;
+
+const tunda = (ms: number) => ({ animationDelay: `${ms}ms` });
+
+// Angka naik dari 0 ke target saat halaman dibuka
+function useCountUp(target: number, durasi = 900, mulaiSetelah = 0) {
+  const [nilai, setNilai] = useState(0);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setNilai(target);
+      return;
+    }
+    let frame = 0;
+    let t0 = 0;
+    const timer = setTimeout(() => {
+      const jalan = (t: number) => {
+        if (!t0) t0 = t;
+        const p = Math.min((t - t0) / durasi, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        setNilai(Math.round(target * ease));
+        if (p < 1) frame = requestAnimationFrame(jalan);
+      };
+      frame = requestAnimationFrame(jalan);
+    }, mulaiSetelah);
+    return () => {
+      clearTimeout(timer);
+      cancelAnimationFrame(frame);
+    };
+  }, [target, durasi, mulaiSetelah]);
+
+  return nilai;
+}
+
 /* ============================ DATA DUMMY ============================ */
 // Nanti ganti dengan data dari API backend.
 
@@ -39,7 +112,7 @@ const mainMenu: { label: string; href: string; icon: LucideIcon; badge?: string 
   { label: "Dashboard", href: "/dashboard", icon: LayoutGrid },
   { label: "Lowongan", href: "/lowongan", icon: Briefcase, badge: "99+" },
   { label: "Perusahaan", href: "/perusahaan", icon: Building2 },
-  { label: "Kategori & Tag", href: "/kategori", icon: Tag },
+  { label: "Tes Psikotes", href: "/psikotes", icon: Brain },
   { label: "Siswa", href: "/siswa", icon: Users },
   { label: "Alumni", href: "/alumni", icon: GraduationCap },
   { label: "Monitoring Karier", href: "/monitoring", icon: BarChart3 },
@@ -105,7 +178,7 @@ function Segmented({
         <button
           key={opt}
           onClick={() => onChange(opt)}
-          className={`rounded-md px-5 py-2 text-[15px] font-medium transition-colors ${
+          className={`rounded-md px-5 py-2 text-[15px] font-medium transition-all duration-200 active:scale-95 ${
             value === opt
               ? "bg-white text-[#2E62EA] shadow-sm"
               : "text-[#666666] hover:text-[#181B21]"
@@ -265,19 +338,25 @@ function Topbar() {
 
 /* ============================ KONTEN LOWONGAN ============================ */
 
-function StatCard({ item }: { item: (typeof stats)[number] }) {
+// Kartu statistik: kartu yang bergerak saat di-hover + angkanya naik dari 0
+function StatCard({ item, delay }: { item: (typeof stats)[number]; delay: number }) {
   const Icon = item.icon;
   const tag = item.trend ?? item.badge;
+  const tampil = useCountUp(item.value, 900, delay + 200);
+
   return (
-    <div className="rounded-2xl border border-[#E8E9ED] bg-white px-6 py-5 shadow-sm">
+    <div
+      style={tunda(delay)}
+      className="anim-masuk kartu-hover group rounded-2xl border border-[#E8E9ED] bg-white px-6 py-5 shadow-sm"
+    >
       <div className="flex items-center justify-between">
         <p className="text-[15px] text-[#666666]">{item.title}</p>
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EEF3FE] text-[#4276E8]">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EEF3FE] text-[#4276E8] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
           <Icon className="h-5 w-5" strokeWidth={1.75} />
         </span>
       </div>
       <div className="mt-5 flex items-center gap-3">
-        <p className="text-[34px] font-bold leading-none text-[#181B21]">{item.value}</p>
+        <p className="text-[34px] font-bold leading-none tabular-nums text-[#181B21]">{tampil}</p>
         {tag && (
           <span className="flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-sm font-medium text-green-600">
             {item.trend && <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.25} />}
@@ -290,7 +369,7 @@ function StatCard({ item }: { item: (typeof stats)[number] }) {
   );
 }
 
-function JobTable() {
+function JobTable({ delay }: { delay: number }) {
   const [page, setPage] = useState(1);
   const [menu, setMenu] = useState<{ id: number; top: number; right: number } | null>(null);
 
@@ -315,7 +394,10 @@ function JobTable() {
   const sampai = Math.min(mulai + PER_PAGE, semuaLowongan.length);
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-[#E8E9ED] bg-white">
+    <section
+      style={tunda(delay)}
+      className="anim-masuk overflow-hidden rounded-2xl border border-[#E8E9ED] bg-white"
+    >
       <div className="overflow-x-auto">
         <table className="w-full min-w-[900px] text-left text-[15px]">
           <thead className="border-b border-[#E8E9ED] bg-[#EEF3FE]/60">
@@ -327,13 +409,19 @@ function JobTable() {
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#E8E9ED]">
-            {data.map((j) => (
-              <tr key={j.id} className="hover:bg-[#F6F7F8]/70">
+
+          {/* key berubah tiap pindah halaman, jadi baris muncul ulang dengan animasi */}
+          <tbody key={page} className="divide-y divide-[#E8E9ED]">
+            {data.map((j, i) => (
+              <tr
+                key={j.id}
+                style={tunda(delay + 250 + i * 60)}
+                className="anim-baris transition-colors hover:bg-[#EEF3FE]/70"
+              >
                 <td className="px-6 py-5">
                   <Link
                     href={`/lowongan/${j.id}`}
-                    className="block max-w-[200px] font-bold leading-snug text-[#181B21] hover:text-[#2E62EA] hover:underline"
+                    className="block max-w-[200px] font-bold leading-snug text-[#181B21] transition-colors hover:text-[#2E62EA] hover:underline"
                   >
                     {j.posisi}
                   </Link>
@@ -364,7 +452,7 @@ function JobTable() {
                           : { id: j.id, top: r.bottom + 4, right: window.innerWidth - r.right }
                       );
                     }}
-                    className="rounded-md p-1.5 text-[#181B21] hover:bg-[#EEF3FE] hover:text-[#2E62EA]"
+                    className="rounded-md p-1.5 text-[#181B21] transition-all duration-200 hover:bg-[#DCE6FD] hover:text-[#2E62EA] active:scale-90"
                   >
                     <MoreVertical className="h-5 w-5" />
                   </button>
@@ -385,7 +473,7 @@ function JobTable() {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="flex items-center gap-2 rounded-lg border border-[#E8E9ED] px-4 py-2.5 text-[#181B21] hover:bg-[#EEF3FE] disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex items-center gap-2 rounded-lg border border-[#E8E9ED] px-4 py-2.5 text-[#181B21] transition-colors hover:bg-[#EEF3FE] disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ArrowLeft className="h-4 w-4" /> Previous
           </button>
@@ -394,7 +482,7 @@ function JobTable() {
             <button
               key={p}
               onClick={() => setPage(p)}
-              className={`h-10 w-10 rounded-lg font-medium transition-colors ${
+              className={`h-10 w-10 rounded-lg font-medium transition-all duration-200 active:scale-90 ${
                 p === page
                   ? "bg-[#2E62EA] text-white"
                   : "border border-[#E8E9ED] text-[#181B21] hover:bg-[#EEF3FE]"
@@ -407,7 +495,7 @@ function JobTable() {
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="flex items-center gap-2 rounded-lg border border-[#E8E9ED] px-4 py-2.5 text-[#181B21] hover:bg-[#EEF3FE] disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex items-center gap-2 rounded-lg border border-[#E8E9ED] px-4 py-2.5 text-[#181B21] transition-colors hover:bg-[#EEF3FE] disabled:cursor-not-allowed disabled:opacity-40"
           >
             Next <ArrowRight className="h-4 w-4" />
           </button>
@@ -419,18 +507,18 @@ function JobTable() {
         <div
           style={{ top: menu.top, right: menu.right }}
           onClick={(e) => e.stopPropagation()}
-          className="fixed z-50 w-52 rounded-xl border border-[#E8E9ED] bg-white p-1.5 shadow-lg"
+          className="anim-menu fixed z-50 w-52 rounded-xl border border-[#E8E9ED] bg-white p-1.5 shadow-lg"
         >
           <Link
             href={`/lowongan/${menu.id}`}
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium text-[#181B21] hover:bg-[#EEF3FE] hover:text-[#2E62EA]"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium text-[#181B21] transition-colors hover:bg-[#EEF3FE] hover:text-[#2E62EA]"
           >
             <Eye className="h-4 w-4" /> Detail Lowongan
           </Link>
-          <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium text-[#181B21] hover:bg-[#EEF3FE] hover:text-[#2E62EA]">
+          <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium text-[#181B21] transition-colors hover:bg-[#EEF3FE] hover:text-[#2E62EA]">
             <Pencil className="h-4 w-4" /> Edit Lowongan
           </button>
-          <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium text-[#666666] hover:bg-[#EEF3FE]">
+          <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium text-[#666666] transition-colors hover:bg-[#EEF3FE]">
             <Archive className="h-4 w-4" /> Arsipkan Lowongan
           </button>
         </div>
@@ -446,13 +534,15 @@ export default function LowonganPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F6F7F8] font-sans text-[#181B21]">
+      <style>{animasiCSS}</style>
+
       <Sidebar />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />
 
         <main className="flex-1 overflow-y-auto px-10 py-10">
-          <div className="flex items-start justify-between">
+          <div className="anim-masuk flex items-start justify-between" style={tunda(0)}>
             <div>
               <h1 className="text-[34px] font-bold text-[#181B21]">Lowongan</h1>
               <p className="mt-2 max-w-[560px] text-[15px] text-[#666666]">
@@ -467,13 +557,13 @@ export default function LowonganPage() {
           </div>
 
           <div className="mt-9 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-            {stats.map((s) => (
-              <StatCard key={s.title} item={s} />
+            {stats.map((s, i) => (
+              <StatCard key={s.title} item={s} delay={100 + i * 80} />
             ))}
           </div>
 
-          <div className="mt-9">
-            <JobTable />
+          <div className="mt-9 pb-4">
+            <JobTable delay={450} />
           </div>
         </main>
       </div>
