@@ -8,7 +8,7 @@ import {
   LayoutGrid,
   Briefcase,
   Building2,
-  Tag,
+  Brain,
   Users,
   GraduationCap,
   BarChart3,
@@ -23,7 +23,6 @@ import {
   ArrowUp,
   ArrowRight,
   ChevronDown,
-  ClipboardList,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -48,7 +47,7 @@ const mainMenu: MenuItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutGrid },
   { label: "Lowongan", href: "/lowongan", icon: Briefcase, badge: "99+" },
   { label: "Perusahaan", href: "/perusahaan", icon: Building2 },
-  { label: "Psikotes", href: "/psikotes", icon: ClipboardList },
+  { label: "Tes Psikotes", href: "/psikotes", icon: Brain },
   { label: "Siswa", href: "/siswa", icon: Users },
   { label: "Alumni", href: "/alumni", icon: GraduationCap },
   { label: "Monitoring Karier", href: "/monitoring", icon: BarChart3 },
@@ -143,7 +142,7 @@ function Topbar() {
       month: "long",
       year: "numeric",
     }).format(new Date());
-    setTanggal(t.replace(/^(\S+)/, "$1,"));
+    setTanggal(t.replace(/^([^\s,]+),?\s*/, "$1, "));
   }, []);
 
   return (
@@ -395,9 +394,9 @@ function RecentJobs() {
           <button className="flex items-center gap-8 rounded-lg border border-[#E8E9ED] px-4 py-2.5 text-[15px] text-[#666666]">
             Semua Kategori <ChevronDown className="h-4 w-4" />
           </button>
-          <a href="/lowongan" className="flex items-center gap-2 text-[15px] font-semibold text-[#2E62EA]">
+          <Link href="/lowongan" className="flex items-center gap-2 text-[15px] font-semibold text-[#2E62EA]">
             Lihat Semua <ArrowRight className="h-4 w-4" />
-          </a>
+          </Link>
         </div>
       </div>
 
