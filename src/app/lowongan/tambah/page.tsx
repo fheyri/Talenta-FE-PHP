@@ -299,6 +299,8 @@ export default function TambahLowonganPage() {
   const [poster, setPoster] = useState<File | null>(null);
   const [posterError, setPosterError] = useState("");
   const [formError, setFormError] = useState("");
+  const [formErrorDetail, setFormErrorDetail] = useState("");
+  const [menyimpan, setMenyimpan] = useState(false);
 
   const set =
     (key: keyof typeof form) =>
@@ -349,9 +351,12 @@ export default function TambahLowonganPage() {
     }
 
     setFormError("");
+    setFormErrorDetail("");
+    setMenyimpan(true);
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
       const formData = new FormData();
       formData.append("posisi", form.posisi);
       formData.append("judul", form.posisi);
@@ -384,13 +389,44 @@ export default function TambahLowonganPage() {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || "Gagal menyimpan lowongan ke backend.");
+        const firstFieldErr =
+          errData?.errors && typeof errData.errors === "object"
+            ? Object.values(errData.errors).flat()[0]
+            : null;
+        if (res.status >= 500) {
+          setFormError(`Server mengalami error (${res.status}) saat menyimpan lowongan.`);
+          setFormErrorDetail(
+            String(
+              errData?.message ||
+                "Periksa apakah database MySQL (XAMPP) sudah menyala dan migrasi tabel sudah dijalankan."
+            )
+          );
+          return;
+        }
+        throw new Error(
+          String(firstFieldErr || errData?.message || `Gagal menyimpan lowongan (HTTP ${res.status}).`)
+        );
       }
 
       router.push("/lowongan");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setFormError(err.message || "Terjadi kesalahan saat menyimpan lowongan.");
+      const msg = err instanceof Error ? err.message : String(err);
+      const isNetworkError =
+        (err instanceof TypeError) ||
+        /failed to fetch|networkerror|err_connection|load failed/i.test(msg);
+
+      if (isNetworkError) {
+        setFormError(`Tidak dapat terhubung ke server backend (${apiUrl}).`);
+        setFormErrorDetail(
+          "Penyebab: Server Laravel belum menyala atau port 8000 tertutup. Pastikan MySQL di XAMPP aktif, lalu jalankan 'php artisan serve --host=0.0.0.0 --port=8000' di folder talenta-api."
+        );
+      } else {
+        setFormError(msg || "Terjadi kesalahan saat menyimpan lowongan.");
+        setFormErrorDetail("");
+      }
+    } finally {
+      setMenyimpan(false);
     }
   }
 
@@ -610,21 +646,33 @@ export default function TambahLowonganPage() {
 
           {/* Aksi */}
           <div className="mt-6 flex flex-col items-end gap-3 pb-6">
-            {formError && <p className="text-[14px] font-medium text-red-600">{formError}</p>}
+            {formError && (
+              <div className="w-full rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-left">
+                <p className="text-[14px] font-semibold text-red-700">{formError}</p>
+                {formErrorDetail && (
+                  <p className="mt-1 text-[13px] leading-relaxed text-red-600">
+                    {formErrorDetail}
+                  </p>
+                )}
+              </div>
+            )}
             <div className="flex items-center gap-3">
               <button
                 type="button"
+                disabled={menyimpan}
                 onClick={() => simpan("draft")}
-                className="flex h-12 items-center gap-3 rounded-lg border border-[#E8E9ED] bg-white px-7 text-[15px] font-medium text-[#181B21] hover:bg-[#EEF3FE]"
+                className="flex h-12 items-center gap-3 rounded-lg border border-[#E8E9ED] bg-white px-7 text-[15px] font-medium text-[#181B21] hover:bg-[#EEF3FE] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <FileText className="h-5 w-5" strokeWidth={1.5} /> Simpan Sebagai Draft
               </button>
               <button
                 type="button"
+                disabled={menyimpan}
                 onClick={() => simpan("aktif")}
-                className="flex h-12 items-center gap-3 rounded-lg bg-[#2E62EA] px-7 text-[15px] font-semibold text-white hover:bg-[#4276E8]"
+                className="flex h-12 items-center gap-3 rounded-lg bg-[#2E62EA] px-7 text-[15px] font-semibold text-white hover:bg-[#4276E8] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <Plus className="h-5 w-5" strokeWidth={2.25} /> Tambah Lowongan
+                <Plus className="h-5 w-5" strokeWidth={2.25} />
+                {menyimpan ? "Menyimpan..." : "Tambah Lowongan"}
               </button>
             </div>
           </div>

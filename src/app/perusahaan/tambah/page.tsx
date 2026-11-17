@@ -495,6 +495,8 @@ export default function TambahPerusahaanPage() {
   const [form, setForm] = useState<FormData>(formKosong);
   const [errors, setErrors] = useState<Errors>({});
   const [menyimpan, setMenyimpan] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [submitErrorDetail, setSubmitErrorDetail] = useState("");
 
   const ubah = (k: keyof FormData, v: string) => {
     setForm((f) => ({ ...f, [k]: v }));
@@ -513,12 +515,17 @@ export default function TambahPerusahaanPage() {
     setErrors(hasil);
     if (Object.keys(hasil).length > 0) return;
 
+    setSubmitError("");
+    setSubmitErrorDetail("");
     setMenyimpan(true);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-      await fetch(`${apiUrl}/companies`, {
+      const res = await fetch(`${apiUrl}/companies`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({
           nama: form.namaPerusahaan,
           industri: form.bidang,
@@ -530,11 +537,35 @@ export default function TambahPerusahaanPage() {
           pic_telepon: form.picTelepon,
         }),
       });
-    } catch (err) {
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        setSubmitError(`Gagal menyimpan perusahaan (HTTP ${res.status}).`);
+        setSubmitErrorDetail(
+          String(
+            errData?.message ||
+              "Periksa kembali isian form serta pastikan MySQL dan server Laravel berjalan."
+          )
+        );
+        return;
+      }
+      router.push("/perusahaan");
+    } catch (err: unknown) {
       console.error("Gagal simpan perusahaan:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      const isNetworkError =
+        (err instanceof TypeError) ||
+        /failed to fetch|networkerror|err_connection|load failed/i.test(msg);
+      if (isNetworkError) {
+        setSubmitError(`Tidak dapat terhubung ke server backend (${apiUrl}).`);
+        setSubmitErrorDetail(
+          "Penyebab: Server Laravel belum menyala atau port 8000 tertutup. Pastikan MySQL di XAMPP aktif, lalu jalankan 'php artisan serve --host=0.0.0.0 --port=8000' di folder talenta-api."
+        );
+      } else {
+        setSubmitError(msg || "Terjadi kesalahan saat menyimpan perusahaan.");
+        setSubmitErrorDetail("");
+      }
     } finally {
       setMenyimpan(false);
-      router.push("/perusahaan");
     }
   };
 
@@ -560,6 +591,17 @@ export default function TambahPerusahaanPage() {
             errors={errors}
             ubah={ubah}
           />
+
+          {submitError && (
+            <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-5 py-4">
+              <p className="text-[14px] font-semibold text-red-700">{submitError}</p>
+              {submitErrorDetail && (
+                <p className="mt-1 text-[13px] leading-relaxed text-red-600">
+                  {submitErrorDetail}
+                </p>
+              )}
+            </div>
+          )}
 
           <motion.div variants={naik} className="mt-8 flex justify-end">
             <motion.button
