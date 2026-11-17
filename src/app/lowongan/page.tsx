@@ -226,7 +226,7 @@ function NavItem({
 
 function Sidebar() {
   return (
-    <aside className="flex h-screen w-[260px] shrink-0 flex-col border-r border-[#E8E9ED] bg-[#EEF3FE]">
+    <aside className="flex h-screen w-[260px] shrink-0 flex-col border-r border-[#E8E9ED] bg-white">
       <div className="flex h-[81px] items-center gap-3 border-b border-[#E8E9ED] px-7">
         <Image
           src="/images/logo-talenta.png"
@@ -278,6 +278,7 @@ function Sidebar() {
 
 function Topbar() {
   const [tanggal, setTanggal] = useState("");
+  const [user, setUser] = useState<{ name?: string; role?: string } | null>(null);
 
   useEffect(() => {
     const t = new Intl.DateTimeFormat("id-ID", {
@@ -287,7 +288,25 @@ function Topbar() {
       year: "numeric",
     }).format(new Date());
     setTanggal(t.replace(/^(\S+)/, "$1,"));
+
+    try {
+      const stored = localStorage.getItem("talenta_bkk_user");
+      if (stored) {
+        setUser(JSON.parse(stored));
+      }
+    } catch {}
   }, []);
+
+  const userName = user?.name || "Fachri Ahmad";
+  const userRole = user?.role ? (user.role === "admin" ? "Admin BKK" : user.role) : "Super Admin";
+  const userInitials =
+    userName
+      .split(" ")
+      .filter(Boolean)
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "FA";
 
   return (
     <header className="flex h-[81px] shrink-0 items-center gap-5 border-b border-[#E8E9ED] bg-[#F6F7F8] px-8">
@@ -323,12 +342,12 @@ function Topbar() {
 
       <div className="ml-auto flex items-center gap-3">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2E62EA] text-lg font-bold text-white ring-2 ring-[#DCE6FD]">
-          DN
+          {userInitials}
         </div>
         <div className="leading-tight">
-          <p className="text-xl font-bold text-[#181B21]">Doni Subianto</p>
+          <p className="text-xl font-bold text-[#181B21]">{userName}</p>
           <span className="mt-1 inline-block rounded-full bg-[#DCE6FD] px-3 py-0.5 text-sm text-[#2E62EA]">
-            Super Admin
+            {userRole}
           </span>
         </div>
       </div>
@@ -372,6 +391,29 @@ function StatCard({ item, delay }: { item: (typeof stats)[number]; delay: number
 function JobTable({ delay }: { delay: number }) {
   const [page, setPage] = useState(1);
   const [menu, setMenu] = useState<{ id: number; top: number; right: number } | null>(null);
+  const [items, setItems] = useState<any[]>(semuaLowongan);
+
+  useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+    fetch(`${apiUrl}/jobs`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped = json.data.map((j: any) => ({
+            id: j.id,
+            posisi: j.judul || "Posisi",
+            tipe: `${j.tipe || "Magang"} • SMK/D3`,
+            perusahaan: j.nama_perusahaan || "Perusahaan Mitra",
+            lokasi: j.lokasi || "Indonesia",
+            kategori: j.kategori || "Umum",
+            deadline: j.batas_waktu || "Terbuka",
+            status: "Aktif",
+          }));
+          setItems(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Tutup menu kalau klik di luar, scroll, atau ukuran layar berubah
   useEffect(() => {
@@ -387,11 +429,11 @@ function JobTable({ delay }: { delay: number }) {
     };
   }, [menu]);
 
-  const totalPages = Math.ceil(semuaLowongan.length / PER_PAGE);
+  const totalPages = Math.ceil(items.length / PER_PAGE);
   const mulai = (page - 1) * PER_PAGE;
-  const data = semuaLowongan.slice(mulai, mulai + PER_PAGE);
+  const data = items.slice(mulai, mulai + PER_PAGE);
   const dari = mulai + 1;
-  const sampai = Math.min(mulai + PER_PAGE, semuaLowongan.length);
+  const sampai = Math.min(mulai + PER_PAGE, items.length);
 
   return (
     <section
@@ -466,7 +508,7 @@ function JobTable({ delay }: { delay: number }) {
       {/* Pagination */}
       <div className="flex items-center justify-between border-t border-[#E8E9ED] px-6 py-5">
         <p className="text-[15px] font-bold text-[#181B21]">
-          Menampilkan {dari}-{sampai} dari {semuaLowongan.length} Lowongan
+          Menampilkan {dari}-{sampai} dari {items.length} Lowongan
         </p>
 
         <div className="flex items-center gap-2 text-[15px]">

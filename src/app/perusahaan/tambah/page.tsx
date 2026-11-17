@@ -88,7 +88,7 @@ function Sidebar() {
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <aside className="flex h-screen w-[260px] shrink-0 flex-col border-r border-[#E8E9ED] bg-[#EEF3FE]">
+    <aside className="flex h-screen w-[260px] shrink-0 flex-col border-r border-[#E8E9ED] bg-white">
       <div className="flex h-[81px] items-center gap-3 border-b border-[#E8E9ED] px-7">
         <Image
           src="/images/logo-talenta.png"
@@ -514,9 +514,28 @@ export default function TambahPerusahaanPage() {
     if (Object.keys(hasil).length > 0) return;
 
     setMenyimpan(true);
-    // TODO: ganti dengan request POST ke API backend (kirim data `form`).
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    router.push("/perusahaan");
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      await fetch(`${apiUrl}/companies`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nama: form.namaPerusahaan,
+          industri: form.bidang,
+          lokasi: form.kota,
+          website: form.website,
+          alamat: form.alamat,
+          pic_nama: form.picNama,
+          pic_jabatan: form.picJabatan,
+          pic_telepon: form.picTelepon,
+        }),
+      });
+    } catch (err) {
+      console.error("Gagal simpan perusahaan:", err);
+    } finally {
+      setMenyimpan(false);
+      router.push("/perusahaan");
+    }
   };
 
   return (

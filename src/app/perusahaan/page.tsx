@@ -89,7 +89,7 @@ function Sidebar() {
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <aside className="flex h-screen w-[260px] shrink-0 flex-col border-r border-[#E8E9ED] bg-[#EEF3FE]">
+    <aside className="flex h-screen w-[260px] shrink-0 flex-col border-r border-[#E8E9ED] bg-white">
       <div className="flex h-[81px] items-center gap-3 border-b border-[#E8E9ED] px-7">
         <Image
           src="/images/logo-talenta.png"
@@ -454,16 +454,51 @@ function RowMenu({ id, onHapus }: { id: number; onHapus: () => void }) {
 
 export default function PerusahaanPage() {
   const [periode, setPeriode] = useState("Bulan ini");
-  const [data, setData] = useState<Perusahaan[]>(semuaPerusahaan);
+  const [data, setData] = useState<Perusahaan[]>([]);
+  const [loading, setLoading] = useState(true);
   const [halaman, setHalaman] = useState(1);
+
+  useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+    fetch(`${apiUrl}/companies`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+          const mapped: Perusahaan[] = res.data.map((c: any) => ({
+            id: c.id,
+            nama: c.nama || c.name || "Perusahaan Mitra",
+            kode: `0123-2026-${String(c.id).padStart(3, "0")}`,
+            terverifikasi: true,
+            bidang: c.industri || c.industry || "Teknologi Informasi",
+            lokasi: c.lokasi || c.location || "Jakarta",
+            jumlahLowongan: c.open_jobs_count || c.jumlah_lowongan || 0,
+            aktif: true,
+            lowonganAktif: c.open_jobs_count || c.jumlah_lowongan || 0,
+          }));
+          setData(mapped);
+        } else {
+          setData(semuaPerusahaan);
+        }
+      })
+      .catch((err) => {
+        console.error("Gagal load perusahaan:", err);
+        setData(semuaPerusahaan);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const totalHalaman = Math.max(1, Math.ceil(data.length / PER_HALAMAN));
   const awal = (halaman - 1) * PER_HALAMAN;
   const tampil = data.slice(awal, awal + PER_HALAMAN);
 
-  const hapus = (id: number, nama: string) => {
-    // Nanti ganti dengan request DELETE ke API backend.
+  const hapus = async (id: number, nama: string) => {
     if (window.confirm(`Hapus ${nama}?`)) {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+        await fetch(`${apiUrl}/companies/${id}`, { method: "DELETE" });
+      } catch (e) {
+        console.error("Gagal hapus dari API:", e);
+      }
       const sisa = data.filter((p) => p.id !== id);
       setData(sisa);
       setHalaman((h) => Math.min(h, Math.max(1, Math.ceil(sisa.length / PER_HALAMAN))));

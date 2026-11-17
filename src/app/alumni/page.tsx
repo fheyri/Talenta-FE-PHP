@@ -90,7 +90,7 @@ function Sidebar() {
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <aside className="flex h-screen w-[260px] shrink-0 flex-col border-r border-[#E8E9ED] bg-[#EEF3FE]">
+    <aside className="flex h-screen w-[260px] shrink-0 flex-col border-r border-[#E8E9ED] bg-white">
       <div className="flex h-[81px] items-center gap-3 border-b border-[#E8E9ED] px-7">
         <Image
           src="/images/logo-talenta.png"

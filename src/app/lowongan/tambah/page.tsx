@@ -108,7 +108,7 @@ function NavItem({
 
 function Sidebar() {
   return (
-    <aside className="flex h-screen w-[260px] shrink-0 flex-col border-r border-[#E8E9ED] bg-[#EEF3FE]">
+    <aside className="flex h-screen w-[260px] shrink-0 flex-col border-r border-[#E8E9ED] bg-white">
       <div className="flex h-[81px] items-center gap-3 border-b border-[#E8E9ED] px-7">
         <Image
           src="/images/logo-talenta.png"
@@ -291,6 +291,7 @@ export default function TambahLowonganPage() {
     link: "",
     namaHr: "",
     telpHr: "",
+    pesanNotifikasi: "",
   });
 
   const [skills, setSkills] = useState<string[]>([]);
@@ -330,12 +331,13 @@ export default function TambahLowonganPage() {
     setPoster(file);
   }
 
-  function simpan(status: "draft" | "aktif") {
+  async function simpan(status: "draft" | "aktif") {
     if (status === "aktif") {
       const kosong = [
         !form.posisi && "Posisi",
         !form.perusahaan && "Perusahaan",
         !form.deadline && "Deadline",
+        !form.pesanNotifikasi && "Teks Pesan Notifikasi Push",
       ].filter(Boolean);
       if (kosong.length) {
         setFormError(`Lengkapi dulu: ${kosong.join(", ")}.`);
@@ -348,10 +350,48 @@ export default function TambahLowonganPage() {
 
     setFormError("");
 
-    // TODO: kirim ke API backend (pakai FormData supaya poster ikut terkirim)
-    console.log({ ...form, skills, poster, status });
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const formData = new FormData();
+      formData.append("posisi", form.posisi);
+      formData.append("judul", form.posisi);
+      formData.append("perusahaan", form.perusahaan);
+      formData.append("kategori", form.kategori);
+      formData.append("jenis", form.jenis);
+      formData.append("lokasi", form.lokasi);
+      formData.append("deskripsi", form.deskripsi || "");
+      formData.append("pesan_notifikasi", form.pesanNotifikasi || `Ada lowongan baru nih di ${form.perusahaan}! Cek posisi ${form.posisi} sekarang.`);
+      formData.append("keterangan", form.pesanNotifikasi || "");
+      formData.append("persyaratan", form.persyaratan || "");
+      formData.append("kualifikasi", [form.persyaratan, form.tanggungJawab].filter(Boolean).join("\n\n"));
+      formData.append("deadline", form.deadline || "");
+      formData.append("link", form.link || "");
+      formData.append("namaHr", form.namaHr || "");
+      formData.append("telpHr", form.telpHr || "");
+      formData.append("status", status);
 
-    router.push("/lowongan");
+      if (poster) {
+        formData.append("poster", poster);
+      }
+
+      const res = await fetch(`${apiUrl}/jobs`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+        },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Gagal menyimpan lowongan ke backend.");
+      }
+
+      router.push("/lowongan");
+    } catch (err: any) {
+      console.error(err);
+      setFormError(err.message || "Terjadi kesalahan saat menyimpan lowongan.");
+    }
   }
 
   return (
@@ -464,6 +504,25 @@ export default function TambahLowonganPage() {
                 />
               </div>
               <p className="mt-2 text-[13px] text-[#666666]">Ketik skill lalu tekan Enter untuk menambahkan.</p>
+            </Section>
+
+            {/* Teks Pesan Notifikasi Push */}
+            <Section
+              title="Notifikasi Push ke Siswa & Alumni"
+              desc="Tulis teks notifikasi yang akan otomatis dikirimkan ke seluruh HP pengguna lengkap dengan suara custom."
+            >
+              <Field
+                label="Teks Pesan Notifikasi (Wajib Diisi)"
+                hint="Teks ini akan muncul sebagai isi pop-up notifikasi di HP pengguna dengan suara khas Talenta."
+              >
+                <textarea
+                  rows={3}
+                  className={textareaClass}
+                  placeholder="Contoh: Ada lowongan baru nih di PT Solu Filantropi! Cek kualifikasi dan daftarkan diri kamu sekarang."
+                  value={form.pesanNotifikasi}
+                  onChange={set("pesanNotifikasi")}
+                />
+              </Field>
             </Section>
 
             {/* Publikasi */}
